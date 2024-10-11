@@ -1,17 +1,23 @@
 import { Request, Response, NextFunction } from 'express';
+import { CustomError } from '../errors/CustomError';
 
-export const errorHandler = (error: any, req: Request, res: Response, next: NextFunction) => {
+export const errorHandler = (error: Error, req: Request, res: Response, next: NextFunction) => {
     console.error("Error:", error);
 
-    const statusCode = error.statusCode || 500;
-    const message = error.message || 'Internal Server Error';
+    if (error instanceof CustomError) {
+        const { statusCode, message, errors } = error;
+        res.status(statusCode).json({ 
+            error: { 
+                message, 
+                ...(errors && { errors })
+            } 
+        });
+    } else {
+        res.status(500).json({ 
+            error: { 
+                message: 'Internal server error' 
+            } 
+        });
+    }
 
-    res.status(statusCode).json({ 
-        success: false,
-        error: {
-            message,
-            ...(process.env.NODE_ENV === 'development' && { stack: error.stack }),
-            ...(error.errors && { errors: error.errors }),
-        }
-    });
 }; 
