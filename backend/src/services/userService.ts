@@ -11,6 +11,11 @@ export const registerUser = async (userData: IUser): Promise<IUser> => {
         throw new CustomError('Username already exists', 400);
     };
     
+    const existingEmail = await User.findOne({ email: userData.email });
+    if (existingEmail) {
+        throw new CustomError('Email already exists', 400);
+    };
+
     const hashedPassword = await bcrypt.hash(userData.password, 10);
     const user = new User({...userData, password: hashedPassword});
     return user.save();
