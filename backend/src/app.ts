@@ -20,7 +20,8 @@ import compression from 'compression';
 import { errorHandler } from './middleware/errorHandler';
 
 //import routes
-import userRoute from './routes/userRoute';
+import authRoutes from './routes/authRoutes';
+import boardRoutes from './routes/boardRoutes';
 
 //initialize express
 const app: Express = express();
@@ -48,7 +49,8 @@ app.use(cookieParser());
 app.use(compression());
 
 //routes
-app.use('/api/users', userRoute);
+app.use('/api/auth', authRoutes);
+app.use('/api/boards', boardRoutes);
 
 //unknown endpoint
 app.use((req: Request, res: Response) => {

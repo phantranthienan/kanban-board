@@ -4,7 +4,7 @@ import jwt from 'jsonwebtoken';
 import { CustomError } from '../errors/CustomError';
 import { config } from '../config';
 
-interface AuthRequest extends Request {
+export interface AuthRequest extends Request {
     user?: {
         id: string;
     }
@@ -18,7 +18,8 @@ export const authMiddleware = (req: AuthRequest, res: Response, next: NextFuncti
 
     try {
         const decodedToken = jwt.verify(token, config.JWT_SECRET) as jwt.JwtPayload;
-        req.user = { id: decodedToken.userId }; 
+        const { id } = decodedToken;
+        req.user = { id }; 
         next(); 
     } catch (error: Error | any) {
         if (error.name === 'TokenExpiredError') {
