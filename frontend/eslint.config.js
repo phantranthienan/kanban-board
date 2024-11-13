@@ -32,11 +32,10 @@ export default tseslint.config(
           singleQuote: true,
           trailingComma: 'all',
           printWidth: 80,
-          tabWidth: 4,
+          tabWidth: 2,
           semi: true,
           useTabs: true,
           arrowParens: 'always',
-
         },
       ],
     },

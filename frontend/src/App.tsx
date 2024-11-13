@@ -1,36 +1,40 @@
-import '@fontsource/roboto/300.css';
-import '@fontsource/roboto/400.css';
-import '@fontsource/roboto/500.css';
-import '@fontsource/roboto/700.css';
+import '@fontsource/poppins/300.css';
+import '@fontsource/poppins/400.css';
+import '@fontsource/poppins/500.css';
+import '@fontsource/poppins/700.css';
 
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
 
 import { CssBaseline } from '@mui/material';
 import { ThemeProvider } from '@emotion/react';
 
-import { AppLayout, AuthLayout } from './layout';
+import ProtectedRoute from './components/ProtectedRoute';
+import AuthLayout from './layouts/AuthLayout';
+import AppLayout from './layouts/AppLayout';
 import { Home, Login, Register, Board } from './pages';
+import { AuthProvider } from './contexts/AuthContext';
+
 import { darkTheme } from './themes';
 
-
-
-const App = () => {
+const App: React.FC = () => {
 	return (
 		<ThemeProvider theme={darkTheme}>
 			<CssBaseline enableColorScheme />
-			<Router>
+			<AuthProvider>
 				<Routes>
-					<Route path='/' element={<AuthLayout />}>
-						<Route path='login' element={<Login />} />
-						<Route path='register' element={<Register />} />
+					<Route element={<ProtectedRoute />}>
+						<Route path="/" element={<AppLayout />}>
+							<Route index element={<Home />} />
+							<Route path="boards" element={<Home />} />
+							<Route path="boards/:boardId" element={<Board />} />
+						</Route>
 					</Route>
-					<Route path='/' element={<AppLayout />}>
-						<Route index element={<Home />} />
-						<Route path='boards' element={<Home />} />
-						<Route path='boards/:boardId' element={<Board />} />
+					<Route path="/" element={<AuthLayout />}>
+						<Route path="login" element={<Login />} />
+						<Route path="register" element={<Register />} />
 					</Route>
 				</Routes>
-			</Router>
+			</AuthProvider>
 		</ThemeProvider>
 	);
 };
