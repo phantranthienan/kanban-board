@@ -27,3 +27,9 @@ export const updateBoard = async (req: Request, res: Response, next: NextFunctio
     const updatedBoard = await boardService.updateBoard(boardId, req.body);
     res.status(200).json(updatedBoard);
 }
+
+export const deleteBoard = async (req: Request, res: Response, next: NextFunction) => {
+    const boardId = req.params.id;
+    await boardService.deleteBoard(boardId);
+    res.status(204).send();
+};
