@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 
-import { useAppDispatch, useAppSelector } from '../hooks/storeHooks';
-import { clearNotification } from '../redux/slices/notificationSlice';
+import { useAppDispatch, useAppSelector } from '../../hooks/storeHooks';
+import { clearNotification } from '../../redux/slices/notificationSlice';
 
 import { Snackbar, Alert } from '@mui/material';
 

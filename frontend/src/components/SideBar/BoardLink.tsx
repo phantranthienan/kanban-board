@@ -10,10 +10,11 @@ import StarIcon from '@mui/icons-material/Star';
 type BoardLinkProps = {
 	icon: string;
 	title: string;
+	favorite: boolean;
 	id: string;
 };
 
-const BoardLink: React.FC<BoardLinkProps> = ({ id, icon, title }) => {
+const BoardLink: React.FC<BoardLinkProps> = ({ id, icon, title, favorite }) => {
 	const navigate = useNavigate();
 	const { attributes, listeners, setNodeRef, transform, transition } =
 		useSortable({ id });
@@ -43,9 +44,7 @@ const BoardLink: React.FC<BoardLinkProps> = ({ id, icon, title }) => {
 				<ListItemText>
 					{icon} {title}
 				</ListItemText>
-				<IconButton>
-					<StarOutlineIcon />
-				</IconButton>
+				<IconButton>{favorite ? <StarIcon /> : <StarOutlineIcon />}</IconButton>
 			</Box>
 		</ListItemButton>
 	);

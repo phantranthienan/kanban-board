@@ -12,6 +12,7 @@ import { registerSchema, RegisterInput } from '../utils/zodSchemas';
 import { Stack, TextField, Button, Typography, Link } from '@mui/material';
 
 import { useRegisterMutation } from '../redux/slices/api/authApiSlice';
+import { handleError } from '../utils/errorHandler';
 
 const Register: React.FC = () => {
 	const dispatch = useAppDispatch();
@@ -45,14 +46,7 @@ const Register: React.FC = () => {
 			);
 			navigate('/login');
 		} catch (error: unknown) {
-			if (error instanceof Error) {
-				dispatch(
-					showNotification({
-						message: error.message,
-						type: 'error',
-					}),
-				);
-			}
+			handleError(error, dispatch);
 		}
 	};
 

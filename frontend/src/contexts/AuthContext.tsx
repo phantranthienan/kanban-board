@@ -6,6 +6,7 @@ import React, {
 	ReactNode,
 } from 'react';
 import { useNavigate } from 'react-router-dom';
+
 import {
 	useLoginMutation,
 	useGetUserInfoQuery,
@@ -32,7 +33,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
 	const [isAuthenticated, setIsAuthenticated] = useState<boolean>(
 		!!tokenManager.getToken(),
 	);
-
 	const navigate = useNavigate();
 
 	const { data: userInfo, error } = useGetUserInfoQuery(undefined, {
@@ -49,20 +49,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
 			setUser(userInfo);
 			setIsAuthenticated(true);
 		}
-	// eslint-disable-next-line react-hooks/exhaustive-deps
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [userInfo, error]);
 
 	// Function to handle login
 	const login = async (credentials: LoginInput) => {
-		try {
-			const { token } = await loginMutation(credentials).unwrap();
-			tokenManager.setToken(token);
-			setIsAuthenticated(true);
-		} catch (error: unknown) {
-			if (error instanceof Error) {
-				throw new Error(error.message);
-			}
-		}
+		const { token } = await loginMutation(credentials).unwrap();
+		tokenManager.setToken(token);
+		setIsAuthenticated(true);
 	};
 
 	// Function to handle logout

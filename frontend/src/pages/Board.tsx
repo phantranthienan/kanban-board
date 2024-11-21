@@ -1,31 +1,35 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { useParams } from 'react-router-dom';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { debounce } from 'lodash';
+
 import {
 	useGetBoardQuery,
 	useUpdateBoardMutation,
+	useDeleteBoardMutation,
 } from '../redux/slices/api/boardApiSlice';
-import { debounce } from 'lodash';
 
-import { Box, InputBase, Stack, IconButton, Divider } from '@mui/material';
-import Loading from '../components/Loading';
-import EmojiPicker from '../components/EmojiPicker';
+import { Box, Divider } from '@mui/material';
+import Loading from '../components/common/Loading';
+import BoardHeader from '../components/Board/BoardHeader';
 
 import { TBoard } from '../types/boards';
 
-import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
-
 const Board: React.FC = () => {
 	const { boardId } = useParams();
+	const navigate = useNavigate();
+
 	const {
 		data: boardData,
 		isLoading,
 		isSuccess,
 	} = useGetBoardQuery(boardId as string);
 	const [updateBoard] = useUpdateBoardMutation();
+	const [deleteBoard] = useDeleteBoardMutation();
 
 	const [board, setBoard] = useState<TBoard | null>(null);
 	const [title, setTitle] = useState<string>('');
 
+	// Update local state when board data is successfully fetched
 	useEffect(() => {
 		if (isSuccess) {
 			setBoard(boardData);
@@ -33,28 +37,33 @@ const Board: React.FC = () => {
 		}
 	}, [isSuccess, boardData]);
 
-	const debouncedUpdateBoard = useMemo(
-		() =>
-			debounce((newTitle: string) => {
-				if (boardId) {
-					updateBoard({ id: boardId, title: newTitle });
-				}
-			}, 500),
+	// Debounced function to update the board title
+	// eslint-disable-next-line react-hooks/exhaustive-deps
+	const debouncedUpdateTitle = useCallback(
+		debounce((newTitle: string) => {
+			if (boardId) {
+				updateBoard({ id: boardId, title: newTitle });
+			}
+		}, 500),
 		[boardId, updateBoard],
 	);
 
-	const handleTitleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-		const newTitle = event.target.value;
+	const handleTitleChange = (newTitle: string) => {
 		setTitle(newTitle);
-		debouncedUpdateBoard(newTitle);
+		debouncedUpdateTitle(newTitle);
 	};
 
+	// Cleanup the debounced function on component unmount
 	useEffect(() => {
-		return () => {
-			debouncedUpdateBoard.cancel();
-		};
-	}, [debouncedUpdateBoard]);
+		return () => debouncedUpdateTitle.cancel();
+	}, [debouncedUpdateTitle]);
 
+	const handleDeleteBoard = () => {
+		if (boardId) {
+			deleteBoard(boardId);
+			navigate('/boards');
+		}
+	};
 	const handleEmojiSelect = (emoji: string) => {
 		updateBoard({ id: boardId as string, icon: emoji });
 	};
@@ -62,30 +71,15 @@ const Board: React.FC = () => {
 	return (
 		<Box>
 			{isLoading && <Loading fullHeight />}
-			<Stack direction="row" alignItems="center" justifyContent="space-between">
-				<Stack direction="row" justifyContent="center">
-					<EmojiPicker
-						initialEmoji={board?.icon}
-						onEmojiSelect={handleEmojiSelect}
-					/>
-					<InputBase
-						value={title}
-						onChange={handleTitleChange}
-						placeholder="Enter title"
-						fullWidth
-						sx={{
-							fontWeight: 'bold',
-							fontSize: '2rem',
-							'& input': {
-								padding: '0.5rem',
-							},
-						}}
-					/>
-				</Stack>
-				<IconButton>
-					<DeleteOutlineIcon fontSize="large" color="error" />
-				</IconButton>
-			</Stack>
+			{board && (
+				<BoardHeader
+					title={title}
+					icon={board.icon}
+					onTitleChange={handleTitleChange}
+					onEmojiSelect={handleEmojiSelect}
+					onDelete={handleDeleteBoard}
+				/>
+			)}
 			<Divider />
 		</Box>
 	);

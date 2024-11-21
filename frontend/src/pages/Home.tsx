@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 
 import { useCreateBoardMutation } from '../redux/slices/api/boardApiSlice';
 import { useAppDispatch } from '../hooks/storeHooks';
@@ -7,27 +8,26 @@ import { showNotification } from '../redux/slices/notificationSlice';
 import { Box, Typography } from '@mui/material';
 import { LoadingButton } from '@mui/lab';
 
+import { handleError } from '../utils/errorHandler';
+
 const Home: React.FC = () => {
 	const dispatch = useAppDispatch();
-	const [createBoard, { isLoading, isSuccess, isError }] =
-		useCreateBoardMutation();
+	const navigate = useNavigate();
 
-	const handleCreateBoard = () => {
-		createBoard({});
-		if (isSuccess) {
+	const [createBoard, { isLoading }] = useCreateBoardMutation();
+
+	const handleCreateBoard = async () => {
+		try {
+			const data = await createBoard({}).unwrap();
 			dispatch(
 				showNotification({
-					message: `Board created successfully`,
+					message: 'Board created successfully',
 					type: 'success',
 				}),
 			);
-		} else if (isError) {
-			dispatch(
-				showNotification({
-					message: 'Error creating board',
-					type: 'error',
-				}),
-			);
+			navigate(`/boards/${data!.id}`);
+		} catch (error: unknown) {
+			handleError(error, dispatch);
 		}
 	};
 

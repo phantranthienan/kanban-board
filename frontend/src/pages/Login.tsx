@@ -13,6 +13,7 @@ import { Stack, TextField, Typography, Link } from '@mui/material';
 import { LoadingButton } from '@mui/lab';
 
 import useAuth from '../hooks/useAuth';
+import { handleError } from '../utils/errorHandler';
 
 const Login: React.FC = () => {
 	const dispatch = useAppDispatch();
@@ -43,14 +44,7 @@ const Login: React.FC = () => {
 			);
 			navigate('/');
 		} catch (error: unknown) {
-			if (error instanceof Error) {
-				dispatch(
-					showNotification({
-						message: error.message,
-						type: 'error',
-					}),
-				);
-			}
+			handleError(error, dispatch);
 		}
 	};
 

@@ -2,8 +2,8 @@ import React from 'react';
 import { Outlet } from 'react-router-dom';
 
 import { Box } from '@mui/material';
-import SideBar from '../components/SideBar';
-import Notifications from '../components/Notifications';
+import SideBar from '../components/SideBar/SideBar';
+import Notifications from '../components/common/Notifications';
 
 const AppLayout: React.FC = () => {
 	return (

@@ -1,22 +1,18 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import { createApi } from '@reduxjs/toolkit/query/react';
+import { baseQuery } from './baseQuery';
 import { TBoard, TBoards } from '../../../types/boards';
 
 export const boardApi = createApi({
 	reducerPath: 'boardApi',
-	baseQuery: fetchBaseQuery({
-		baseUrl: 'http://localhost:3001/api/',
-		prepareHeaders: (headers) => {
-			const token = localStorage.getItem('token');
-			if (token) {
-				headers.set('authorization', `Bearer ${token}`);
-			}
-			return headers;
-		},
-	}),
+	baseQuery: baseQuery,
 	tagTypes: ['Board'],
 	endpoints: (builder) => ({
 		getBoards: builder.query<TBoards, void>({
 			query: () => 'boards',
+			providesTags: ['Board'],
+		}),
+		getBoard: builder.query<TBoard, string>({
+			query: (id) => `boards/${id}`,
 			providesTags: ['Board'],
 		}),
 		createBoard: builder.mutation<TBoard, Partial<TBoard>>({
@@ -35,9 +31,12 @@ export const boardApi = createApi({
 			}),
 			invalidatesTags: ['Board'],
 		}),
-		getBoard: builder.query<TBoard, string>({
-			query: (id) => `boards/${id}`,
-			providesTags: ['Board'],
+		deleteBoard: builder.mutation<void, string>({
+			query: (id) => ({
+				url: 'boards/' + id,
+				method: 'DELETE',
+			}),
+			invalidatesTags: ['Board'],
 		}),
 	}),
 });
@@ -46,5 +45,6 @@ export const {
 	useGetBoardsQuery,
 	useCreateBoardMutation,
 	useUpdateBoardMutation,
+	useDeleteBoardMutation,
 	useGetBoardQuery,
 } = boardApi;

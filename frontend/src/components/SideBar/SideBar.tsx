@@ -1,9 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import useAuth from '../hooks/useAuth';
+import { useNavigate } from 'react-router-dom';
+import useAuth from '../../hooks/useAuth';
 import {
 	useGetBoardsQuery,
 	useUpdateBoardMutation,
-} from '../redux/slices/api/boardApiSlice';
+	useCreateBoardMutation,
+} from '../../redux/slices/api/boardApiSlice';
+import { showNotification } from '../../redux/slices/notificationSlice';
+import { useAppDispatch } from '../../hooks/storeHooks';
 
 import {
 	Drawer,
@@ -19,7 +23,9 @@ import {
 } from '@mui/material';
 
 import BoardLink from './BoardLink';
-import Loading from './Loading';
+import Loading from '../common/Loading';
+
+import { handleError } from '../../utils/errorHandler';
 
 import LogoutIcon from '@mui/icons-material/Logout';
 import AddBoxOutlinedIcon from '@mui/icons-material/AddBoxOutlined';
@@ -36,20 +42,22 @@ import {
 
 import { arrayMove, SortableContext } from '@dnd-kit/sortable';
 
-import { stringToAvatar } from '../utils/avatarHelpers';
+import { stringToAvatar } from '../../utils/avatarHelpers';
 
-import { TBoard } from '../types/boards';
+import { TBoard } from '../../types/boards';
 
 const SideBar: React.FC = () => {
 	const { user, logout } = useAuth();
+	const dispatch = useAppDispatch();
+	const navigate = useNavigate();
 
-	// Fetch board data and initialize with query response
 	const { data: boardsData, isSuccess, isLoading } = useGetBoardsQuery();
 	const [updateBoard] = useUpdateBoardMutation();
+	const [createBoard] = useCreateBoardMutation();
+
 	const [boards, setBoards] = useState<TBoard[]>([]);
 	const [initialBoards, setInitialBoards] = useState<TBoard[]>([]);
 
-	// Populate boards once data is successfully fetched
 	useEffect(() => {
 		if (isSuccess) {
 			setBoards(boardsData);
@@ -92,6 +100,21 @@ const SideBar: React.FC = () => {
 				compareAndUpdateBoards(updatedBoards); // Update positions
 				return updatedBoards;
 			});
+		}
+	};
+
+	const handleCreateBoard = async () => {
+		try {
+			const data = await createBoard({}).unwrap();
+			dispatch(
+				showNotification({
+					message: 'Board created successfully',
+					type: 'success',
+				}),
+			);
+			navigate(`/boards/${data!.id}`);
+		} catch (error: unknown) {
+			handleError(error, dispatch);
 		}
 	};
 
@@ -177,7 +200,7 @@ const SideBar: React.FC = () => {
 						>
 							all boards
 						</Typography>
-						<IconButton>
+						<IconButton onClick={handleCreateBoard}>
 							<AddBoxOutlinedIcon fontSize="inherit" />
 						</IconButton>
 					</Box>
@@ -195,6 +218,7 @@ const SideBar: React.FC = () => {
 								key={board.id}
 								icon={board.icon}
 								title={board.title}
+								favorite={board.favorite}
 							/>
 						))}
 					</SortableContext>

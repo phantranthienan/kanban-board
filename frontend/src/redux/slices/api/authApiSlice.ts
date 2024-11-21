@@ -1,22 +1,7 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import { createApi } from '@reduxjs/toolkit/query/react';
 import { LoginInput, RegisterInput } from '../../../utils/zodSchemas';
+import { baseQuery } from './baseQuery';
 import { TUser } from '../../../types/users';
-
-import { tokenManager } from '../../../utils/tokenManager';
-
-const baseQuery = fetchBaseQuery({
-	baseUrl: 'http://localhost:3001/api/',
-	prepareHeaders: (headers, { endpoint }) => {
-		// Only add token to 'getUserInfo' endpoint
-		if (endpoint === 'getUserInfo') {
-			const token = tokenManager.getToken();
-			if (token) {
-				headers.set('Authorization', `Bearer ${token}`);
-			}
-		}
-		return headers;
-	},
-});
 
 export const authApi = createApi({
 	reducerPath: 'authApi',
