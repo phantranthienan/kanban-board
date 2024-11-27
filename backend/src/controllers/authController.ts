@@ -24,5 +24,4 @@ export const getUserInfo = async (req: AuthRequest, res: Response, next: NextFun
     }
     const user = await authService.getUserInfo(userId);
     res.status(200).json(user);
-
 };

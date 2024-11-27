@@ -34,7 +34,7 @@ const taskSchema = new Schema({
     },
 }, { timestamps: true });
 
-type TTask = InferSchemaType<typeof taskSchema>;
+export type TTask = InferSchemaType<typeof taskSchema>;
 
 export type TaskDocument = HydratedDocument<TTask>;
 

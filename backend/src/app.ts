@@ -20,8 +20,7 @@ import compression from 'compression';
 import { errorHandler } from './middleware/errorHandler';
 
 //import routes
-import authRoutes from './routes/authRoutes';
-import boardRoutes from './routes/boardRoutes';
+import router from './routes';
 
 //initialize express
 const app: Express = express();
@@ -49,9 +48,7 @@ app.use(cookieParser());
 app.use(compression());
 
 //routes
-app.use('/api/auth', authRoutes);
-app.use('/api/boards', boardRoutes);
-
+app.use('/api', router);
 //unknown endpoint
 app.use((req: Request, res: Response) => {
     res.status(404).json({ message: 'Unknow endpoint' });
