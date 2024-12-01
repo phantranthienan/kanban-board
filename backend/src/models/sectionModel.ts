@@ -1,4 +1,5 @@
 import mongoose, { Schema, HydratedDocument, InferSchemaType } from 'mongoose';
+import { deleteTasksBySectionId } from './taskModel';
 
 const sectionSchema = new Schema({
     title: { 
@@ -36,7 +37,7 @@ export const createSection = async (sectionData: TSection): Promise<SectionDocum
 };
 
 /**
- * Find a section by its ID
+ * Get a section by its ID, populating its tasks
  * @param {string} id - The ID of the section to find
  * @return {Promise<SectionDocument | null>} The section document if found, otherwise null
  */
@@ -45,13 +46,12 @@ export const getSectionById = async (id: string): Promise<SectionDocument | null
 };
 
 /**
- * Get number of tasks in a section
- * @param {string} id - The ID of the section to count tasks
- * @return {Promise<number>} The number of tasks in the section
+ * Get all sections for a board
+ * @param {string} boardId - The ID of the board to find sections for
+ * @return {Promise<SectionDocument[]>} The array of section documents for the board
  */
-export const getNumberOfTasksInSection = async (id: string): Promise<number> => {
-    const section = await Section.findById(id);
-    return section?.tasks.length || 0;
+export const getSectionsByBoardId = async (boardId: string): Promise<SectionDocument[]> => {
+    return await Section.find({ board: boardId }).populate('tasks');
 }
 
 /**
@@ -70,8 +70,19 @@ export const updateSectionById = async (id: string, updateData: Partial<TSection
  * @return {Promise<SectionDocument | null>} The deleted section document, or null if not found
  */
 export const deleteSectionById = async (id: string): Promise<SectionDocument | null> => {
+    await deleteTasksBySectionId(id);
     return await Section.findByIdAndDelete(id);
 };
+
+/**
+ * Get number of tasks in a section
+ * @param {string} id - The ID of the section to count tasks
+ * @return {Promise<number>} The number of tasks in the section
+ */
+export const getNumberOfTasksInSection = async (id: string): Promise<number> => {
+    const section = await Section.findById(id);
+    return section?.tasks.length || 0;
+}
 
 /**
  * Add a task to a section

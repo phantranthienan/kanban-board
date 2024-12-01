@@ -40,6 +40,10 @@ export const getTask = async (taskId: string): Promise<TaskDocument> => {
     return task;
 };
 
+export const getTasksBySectionId = async (sectionId: string): Promise<TaskDocument[]> => {
+    return await getTasksBySectionId(sectionId);
+}
+
 /**
  * Deletes a task by its ID.
  * Removes the task from the database and ensures that the task ID is also

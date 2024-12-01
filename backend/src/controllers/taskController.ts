@@ -9,8 +9,9 @@ import * as taskService from "../services/taskService";
  */
 export const createTask = async (req: Request, res: Response) => {
     const { sectionId } = req.params; 
+    const { boardId } = req.params;
     const taskData = req.body; 
-    const newTask = await taskService.createNewTask({ ...taskData, section: sectionId });
+    const newTask = await taskService.createNewTask({ ...taskData, section: sectionId, board: boardId });
     res.status(201).json(newTask);
 };
 
@@ -25,6 +26,18 @@ export const getTaskById = async (req: Request, res: Response) => {
     const task = await taskService.getTask(taskId);
     res.status(200).json(task);
 };
+
+/**
+ * Get all tasks for a section.
+ * @route GET /boards/:boardId/sections/:sectionId/tasks
+ * @param {Request} req - Express request object.
+ * @param {Response} res - Express response object.
+ */
+export const getTasksBySectionId = async (req: Request, res: Response) => {
+    const { sectionId } = req.params; 
+    const tasks = await taskService.getTasksBySectionId(sectionId);
+    res.status(200).json(tasks);
+}
 
 /**
  * Update a task by its ID.

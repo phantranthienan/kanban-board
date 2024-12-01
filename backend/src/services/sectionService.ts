@@ -1,5 +1,5 @@
 import { CustomError } from "../errors/CustomError";
-import { SectionDocument, TSection, createSection, getSectionById, updateSectionById, deleteSectionById } from "../models/sectionModel";
+import { SectionDocument, TSection, createSection, getSectionById, updateSectionById, deleteSectionById, getSectionsByBoardId } from "../models/sectionModel";
 import { getNumberOfSectionsInBoard, addSectionToBoard, removeSectionFromBoard } from "../models/boardModel";
 
 /**
@@ -32,6 +32,15 @@ export const getSection = async (sectionId: string): Promise<SectionDocument> =>
     }
     return section;
 };
+
+/**
+ * Fetch all sections for a board.
+ * @param {string} boardId - The ID of the board.
+ * @return {Promise<SectionDocument[]>} An array of section documents.
+ */
+export const getSectionsOfBoard = async (boardId: string): Promise<SectionDocument[]> => {
+    return await getSectionsByBoardId(boardId);
+}
 
 /**
  * Delete a section by its ID.

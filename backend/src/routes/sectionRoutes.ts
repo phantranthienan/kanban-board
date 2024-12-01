@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { createSection, getSectionById, updateSection, deleteSection } from '../controllers/sectionController';
+import { createSection, getSectionById, updateSection, deleteSection, getSectionsByBoardId } from '../controllers/sectionController';
 import taskRoutes from './taskRoutes';
 import { authMiddleware } from '../middleware/authMiddleware';
 
@@ -7,6 +7,9 @@ const router = Router({ mergeParams: true }); // Enable access to boardId in par
 
 /** POST /boards/:boardId/sections - Create a new section */
 router.post('/', authMiddleware, createSection);
+
+/** GET /boards/:boardId/sections - Get all sections for a board */
+router.get('/', authMiddleware, getSectionsByBoardId);
 
 /** GET /boards/:boardId/sections/:sectionId - Get a specific section by its ID */
 router.get('/:sectionId', authMiddleware, getSectionById);

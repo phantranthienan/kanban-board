@@ -49,6 +49,7 @@ app.use(compression());
 
 //routes
 app.use('/api', router);
+
 //unknown endpoint
 app.use((req: Request, res: Response) => {
     res.status(404).json({ message: 'Unknow endpoint' });

@@ -1,11 +1,14 @@
 import { Router } from 'express';
-import { createTask, getTaskById, updateTask, deleteTask } from '../controllers/taskController';
+import { createTask, getTaskById, updateTask, deleteTask, getTasksBySectionId } from '../controllers/taskController';
 import { authMiddleware } from '../middleware/authMiddleware';
 
 const router = Router({ mergeParams: true }); // Enable access to parent route parameters
 
 /** POST /boards/:boardId/sections/:sectionId/tasks - Create a new task in a specific section */
 router.post('/', authMiddleware, createTask);
+
+/** GET /boards/:boardId/sections/:sectionId/tasks - Get all tasks for a section */
+router.get('/', authMiddleware, getTasksBySectionId);
 
 /** GET /boards/:boardId/sections/:sectionId/tasks/:taskId - Get a specific task by its ID */
 router.get('/:taskId', authMiddleware, getTaskById);

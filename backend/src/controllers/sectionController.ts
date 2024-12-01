@@ -27,6 +27,18 @@ export const getSectionById = async (req: Request, res: Response) => {
 };
 
 /**
+ * Get all sections for a board.
+ * @route GET /boards/:boardId/sections
+ * @param {Request} req - Express request object containing boardId.
+ * @param {Response} res - Express response object.
+ */
+export const getSectionsByBoardId = async (req: Request, res: Response) => {
+    const { boardId } = req.params;
+    const sections = await sectionService.getSectionsOfBoard(boardId);
+    res.status(200).json(sections);
+}
+
+/**
  * Update a section by its ID.
  * @route PUT /boards/:boardId/sections/:sectionId
  * @param {Request} req - Express request object containing sectionId and update data.

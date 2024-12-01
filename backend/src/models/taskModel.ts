@@ -1,5 +1,5 @@
-// src/models/taskModel.ts
 import { Schema, model, HydratedDocument, InferSchemaType } from 'mongoose';
+import { Section } from './sectionModel';
 
 const subtaskSchema = new Schema({
     title: { type: String, required: true },
@@ -24,9 +24,10 @@ const taskSchema = new Schema({
         ref: 'Section', 
         required: true 
     },
-    subtasks: { 
-        type: [subtaskSchema], 
-        default: [] 
+    board: {
+        type: Schema.Types.ObjectId,
+        ref: 'Board',
+        required: true
     },
     deadline: { 
         type: Date,
@@ -60,6 +61,16 @@ export const getTaskById = async (id: string): Promise<TaskDocument | null> => {
 };
 
 /**
+ * Get all tasks for a section
+ * @param {string} sectionId - The ID of the section to find tasks for
+ * @return {Promise<TaskDocument[]>} The array of task documents for the section
+ */
+
+export const getTasksBySectionId = async (sectionId: string): Promise<TaskDocument[]> => {
+    return await Task.find({ section: sectionId });
+}
+
+/**
  * Update an existing task by ID
  * @param {string} id - The ID of the task to update
  * @param {Partial<TTask>} updateData - The data to update in the task document
@@ -76,4 +87,13 @@ export const updateTaskById = async (id: string, updateData: Partial<TTask>): Pr
  */
 export const deleteTaskById = async (id: string): Promise<TaskDocument | null> => {
     return await Task.findByIdAndDelete(id);
+};
+
+/**
+ * Delete all tasks in a section
+ * @param {string} sectionId - The ID of the section to delete tasks from
+ * @return {Promise<void>}
+ */
+export const deleteTasksBySectionId = async (sectionId: string): Promise<void> => {
+    await Task.deleteMany({ section: sectionId });
 };
