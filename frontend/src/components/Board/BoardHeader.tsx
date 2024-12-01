@@ -19,7 +19,7 @@ const BoardHeader: React.FC<BoardHeaderProps> = ({
 	onDelete,
 }) => {
 	const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-		onTitleChange(event.target.value); // Call the provided handler
+		onTitleChange(event.target.value);
 	};
 
 	return (
@@ -30,10 +30,10 @@ const BoardHeader: React.FC<BoardHeaderProps> = ({
 					value={title}
 					onChange={handleInputChange}
 					placeholder="Enter title"
-					fullWidth
 					sx={{
 						fontWeight: 'bold',
 						fontSize: '2rem',
+						maxWidth: '20rem',
 						'& input': {
 							padding: '0.5rem',
 						},

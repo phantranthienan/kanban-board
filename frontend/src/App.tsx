@@ -7,6 +7,8 @@ import { Routes, Route } from 'react-router-dom';
 
 import { CssBaseline } from '@mui/material';
 import { ThemeProvider } from '@emotion/react';
+import { LocalizationProvider } from '@mui/x-date-pickers';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 
 import ProtectedRoute from './components/common/ProtectedRoute';
 import AuthLayout from './layouts/AuthLayout';
@@ -19,22 +21,24 @@ import { darkTheme } from './themes';
 const App: React.FC = () => {
 	return (
 		<ThemeProvider theme={darkTheme}>
-			<CssBaseline enableColorScheme />
-			<AuthProvider>
-				<Routes>
-					<Route element={<ProtectedRoute />}>
-						<Route path="/" element={<AppLayout />}>
-							<Route index element={<Home />} />
-							<Route path="boards" element={<Home />} />
-							<Route path="boards/:boardId" element={<Board />} />
+			<LocalizationProvider dateAdapter={AdapterDayjs}>
+				<CssBaseline enableColorScheme />
+				<AuthProvider>
+					<Routes>
+						<Route element={<ProtectedRoute />}>
+							<Route path="/" element={<AppLayout />}>
+								<Route index element={<Home />} />
+								<Route path="boards" element={<Home />} />
+								<Route path="boards/:boardId" element={<Board />} />
+							</Route>
 						</Route>
-					</Route>
-					<Route path="/" element={<AuthLayout />}>
-						<Route path="login" element={<Login />} />
-						<Route path="register" element={<Register />} />
-					</Route>
-				</Routes>
-			</AuthProvider>
+						<Route path="/" element={<AuthLayout />}>
+							<Route path="login" element={<Login />} />
+							<Route path="register" element={<Register />} />
+						</Route>
+					</Routes>
+				</AuthProvider>
+			</LocalizationProvider>
 		</ThemeProvider>
 	);
 };

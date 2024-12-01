@@ -11,10 +11,17 @@ type BoardLinkProps = {
 	icon: string;
 	title: string;
 	favorite: boolean;
+	onFavoriteClick: (event: React.MouseEvent<HTMLButtonElement>) => void;
 	id: string;
 };
 
-const BoardLink: React.FC<BoardLinkProps> = ({ id, icon, title, favorite }) => {
+const BoardLink: React.FC<BoardLinkProps> = ({
+	id,
+	icon,
+	title,
+	favorite,
+	onFavoriteClick,
+}) => {
 	const navigate = useNavigate();
 	const { attributes, listeners, setNodeRef, transform, transition } =
 		useSortable({ id });
@@ -44,7 +51,9 @@ const BoardLink: React.FC<BoardLinkProps> = ({ id, icon, title, favorite }) => {
 				<ListItemText>
 					{icon} {title}
 				</ListItemText>
-				<IconButton>{favorite ? <StarIcon /> : <StarOutlineIcon />}</IconButton>
+				<IconButton onClick={(e) => onFavoriteClick(e)}>
+					{favorite ? <StarIcon /> : <StarOutlineIcon />}
+				</IconButton>
 			</Box>
 		</ListItemButton>
 	);

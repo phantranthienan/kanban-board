@@ -20,6 +20,7 @@ import {
 	Divider,
 	Avatar,
 	Stack,
+	Collapse,
 } from '@mui/material';
 
 import BoardLink from './BoardLink';
@@ -30,6 +31,7 @@ import { handleError } from '../../utils/errorHandler';
 import LogoutIcon from '@mui/icons-material/Logout';
 import AddBoxOutlinedIcon from '@mui/icons-material/AddBoxOutlined';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 
 import {
 	DndContext,
@@ -57,6 +59,7 @@ const SideBar: React.FC = () => {
 
 	const [boards, setBoards] = useState<TBoard[]>([]);
 	const [initialBoards, setInitialBoards] = useState<TBoard[]>([]);
+	const [showFavorites, setShowFavorites] = useState(true);
 
 	useEffect(() => {
 		if (isSuccess) {
@@ -118,6 +121,17 @@ const SideBar: React.FC = () => {
 		}
 	};
 
+	const handleFavoriteClick = async (
+		e: React.MouseEvent<HTMLButtonElement>,
+		id: string,
+	) => {
+		e.stopPropagation();
+		await updateBoard({
+			id,
+			favorite: !boards.find((board) => board.id === id)!.favorite,
+		});
+	};
+
 	return (
 		<Drawer
 			container={document.body}
@@ -155,10 +169,11 @@ const SideBar: React.FC = () => {
 						</IconButton>
 					</Stack>
 				</ListItemButton>
+
 				<Divider />
 
 				{/* Favorite Boards Section */}
-				<ListItemButton>
+				<ListItemButton onClick={() => setShowFavorites((prev) => !prev)}>
 					<Box
 						sx={{
 							display: 'flex',
@@ -176,10 +191,33 @@ const SideBar: React.FC = () => {
 							favorite
 						</Typography>
 						<IconButton>
-							<ExpandMoreIcon fontSize="inherit" />
+							{showFavorites ? (
+								<ExpandLessIcon fontSize="inherit" />
+							) : (
+								<ExpandMoreIcon fontSize="inherit" />
+							)}
 						</IconButton>
 					</Box>
 				</ListItemButton>
+				{boards.some((board) => board.favorite) && (
+					<Collapse in={showFavorites} timeout="auto" unmountOnExit>
+						<List disablePadding>
+							{boards
+								.filter((board) => board.favorite)
+								.map((board) => (
+									<BoardLink
+										id={board.id}
+										key={board.id}
+										icon={board.icon}
+										title={board.title}
+										favorite={board.favorite}
+										onFavoriteClick={(e) => handleFavoriteClick(e, board.id)}
+									/>
+								))}
+						</List>
+					</Collapse>
+				)}
+
 				<Divider />
 
 				{/* All Boards Header with Add Icon */}
@@ -219,6 +257,7 @@ const SideBar: React.FC = () => {
 								icon={board.icon}
 								title={board.title}
 								favorite={board.favorite}
+								onFavoriteClick={(e) => handleFavoriteClick(e, board.id)}
 							/>
 						))}
 					</SortableContext>

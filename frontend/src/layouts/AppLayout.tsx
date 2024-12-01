@@ -19,7 +19,9 @@ const AppLayout: React.FC = () => {
 				<Box
 					sx={{
 						flexGrow: 1,
-						p: 2,
+						px: 2,
+						py: 1,
+						height: '100%',
 					}}
 				>
 					<Outlet />
