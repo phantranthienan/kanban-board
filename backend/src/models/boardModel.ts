@@ -1,5 +1,6 @@
 import mongoose, { Schema, InferSchemaType, HydratedDocument } from "mongoose"; 
-import { SectionDocument } from "./sectionModel";
+import { Section } from "./sectionModel";
+import { Task } from "./taskModel";
 
 export const boardSchema = new Schema({
     title: {
@@ -42,6 +43,13 @@ boardSchema.set('toJSON', {
     }
 });
 
+boardSchema.post('findOneAndDelete', async (doc) => {
+    if (doc) {
+        await Section.deleteMany({ board: doc._id });
+        await Task.deleteMany({ board: doc._id });
+    }
+});
+
 export type TBoard = InferSchemaType<typeof boardSchema>;
 
 export type BoardDocument = HydratedDocument<TBoard>;
@@ -66,7 +74,7 @@ export const createBoard = async (data: Partial<TBoard>): Promise<BoardDocument>
  * @return {Promise<BoardDocument | null>} The board document if found, otherwise null
  */
 export const getBoardById = async (id: string): Promise<BoardDocument | null> => {
-    return await Board.findById(id).populate('sections');
+    return await Board.findById(id);
 };
 
 /**
@@ -108,23 +116,3 @@ export const updateBoardById = async (id: string, data: Partial<TBoard>): Promis
 export const deleteBoardById = async (id: string): Promise<BoardDocument | null> => {
     return await Board.findByIdAndDelete(id);
 }
-
-/**
- * Add a section to a board.
- * @param {string} boardId - The ID of the board to add the section to.
- * @param {string} sectionId - The ID of the section to add to the board.
- * @return {Promise<void>} The updated board document.
- */
-export const addSectionToBoard = async (boardId: string, sectionId: string): Promise<void> => {
-    await Board.findByIdAndUpdate(boardId, { $push: { sections: sectionId } }); 
-};
-
-/**
- * Remove a section from a board.
- * @param {string} boardId - The ID of the board to remove the section from.
- * @param {string} sectionId - The ID of the section to remove from the board.
- * @return {Promise<void>} The updated board document.
- */
-export const removeSectionFromBoard = async (boardId: string, sectionId: string): Promise<void> => {
-    await Board.findByIdAndUpdate(boardId, { $pull: { sections: sectionId } });
-};

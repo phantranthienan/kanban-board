@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import * as sectionService from '../services/sectionService';
+import { CustomError } from '../errors/CustomError';
 
 /**
  * Create a new section for a specific board.
@@ -58,6 +59,25 @@ export const updateSection = async (req: Request, res: Response) => {
  */
 export const deleteSection = async (req: Request, res: Response) => {
     const { sectionId } = req.params;
+    console.log(req.params);
     await sectionService.deleteSection(sectionId);
     res.status(204).send();
+};
+
+/**
+ * Reorder sections within a board.
+ * @route PATCH /boards/:boardId/sections/reorder
+ * @param {Request} req - Express request object containing reordered sections.
+ * @param {Response} res - Express response object.
+ */
+export const reorderSections = async (req: Request, res: Response) => {
+    console.log(req.body);
+    const { boardId } = req.params;
+    const { sections } = req.body; // Array of sections with updated positions
+
+    if (!sections || !Array.isArray(sections)) {
+        throw new CustomError('Invalid request body', 400);
+    }
+    await sectionService.updateSectionPositions(boardId, sections);
+    res.status(200).send();
 };

@@ -24,3 +24,18 @@ export const loginSchema = z.object({
     password: z.string().min(1, { message: 'Password is required' }),
 });
   
+
+export const taskSchema = z.object({
+    title: z
+        .string().min(1, { message: 'Title is required' }),
+    description: z
+        .string().max(500, { message: 'Description must be less than 500 characters' }),
+    deadline: z
+        .date()
+        .refine((date) => date > new Date(), {
+            message: 'Deadline must be in the future',
+        }), 
+    subtasks: z.array(z.string()).optional(),
+});
+
+type taskInput = z.infer<typeof taskSchema>;

@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import { taskSchema } from "../utils/zodSchemas";
 import * as taskService from "../services/taskService";
 
 /**
@@ -10,7 +11,8 @@ import * as taskService from "../services/taskService";
 export const createTask = async (req: Request, res: Response) => {
     const { sectionId } = req.params; 
     const { boardId } = req.params;
-    const taskData = req.body; 
+    
+    const taskData = { ...req.body, deadline: new Date(req.body.deadline) };
     const newTask = await taskService.createNewTask({ ...taskData, section: sectionId, board: boardId });
     res.status(201).json(newTask);
 };
@@ -35,7 +37,7 @@ export const getTaskById = async (req: Request, res: Response) => {
  */
 export const getTasksBySectionId = async (req: Request, res: Response) => {
     const { sectionId } = req.params; 
-    const tasks = await taskService.getTasksBySectionId(sectionId);
+    const tasks = await taskService.getTasksOfASection(sectionId);
     res.status(200).json(tasks);
 }
 

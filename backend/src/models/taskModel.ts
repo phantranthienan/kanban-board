@@ -1,10 +1,5 @@
-import { Schema, model, HydratedDocument, InferSchemaType } from 'mongoose';
+import mongoose, { Schema, HydratedDocument, InferSchemaType } from 'mongoose';
 import { Section } from './sectionModel';
-
-const subtaskSchema = new Schema({
-    title: { type: String, required: true },
-    completed: { type: Boolean, default: false },
-});
 
 const taskSchema = new Schema({
     title: { 
@@ -13,6 +8,10 @@ const taskSchema = new Schema({
     },
     description: { 
         type: String,
+        default: '',
+    },
+    deadline: { 
+        type: Date,
         required: true
     },
     position: { 
@@ -24,29 +23,49 @@ const taskSchema = new Schema({
         ref: 'Section', 
         required: true 
     },
+    subtasks: {
+        type: [String],
+        default: []
+    },
     board: {
         type: Schema.Types.ObjectId,
         ref: 'Board',
         required: true
     },
-    deadline: { 
-        type: Date,
-        required: true
-    },
-}, { timestamps: true });
+});
+
+taskSchema.set('toJSON', {
+    transform: (doc, ret) => {
+        ret.id = ret._id;
+        delete ret._id;
+        delete ret.__v;
+    }
+});
+
+taskSchema.post('save', async (doc) => {
+    if (doc) {
+        await Section.findByIdAndUpdate(doc.section, { $push: { tasks: doc._id } });
+    }
+});
+
+taskSchema.post('findOneAndDelete', async (doc) => {
+    if (doc) {
+        await Section.findByIdAndUpdate(doc.section, { $pull: { tasks: doc._id } });
+    }
+});
 
 export type TTask = InferSchemaType<typeof taskSchema>;
 
 export type TaskDocument = HydratedDocument<TTask>;
 
-export const Task = model<TaskDocument>('Task', taskSchema);
+export const Task = mongoose.model<TaskDocument>('Task', taskSchema);
 
 /**
  * Create a new task
  * @param {TTask} taskData - The data for creating a new task
  * @return {Promise<TaskDocument>} The newly created task document
  */
-export const createTask = async (taskData: TTask): Promise<TaskDocument> => {
+export const createTask = async (taskData: TTask): Promise<TaskDocument>  => {
     const task = new Task(taskData);
     return await task.save();
 };
@@ -57,7 +76,7 @@ export const createTask = async (taskData: TTask): Promise<TaskDocument> => {
  * @return {Promise<TaskDocument | null>} The task document if found, otherwise null
  */
 export const getTaskById = async (id: string): Promise<TaskDocument | null> => {
-    return await Task.findById(id).populate('section');
+    return await Task.findById(id);
 };
 
 /**

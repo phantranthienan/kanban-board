@@ -1,6 +1,6 @@
 import { CustomError } from "../errors/CustomError";
-import { TaskDocument, TTask, getTaskById, createTask, updateTaskById, deleteTaskById } from "../models/taskModel";
-import { getNumberOfTasksInSection, addTaskToSection, removeTaskFromSection } from "../models/sectionModel";
+import { TaskDocument, TTask, getTaskById, createTask, updateTaskById, deleteTaskById, getTasksBySectionId } from "../models/taskModel";
+import { getNumberOfTasksInSection } from "../models/sectionModel";
 
 /**
  * Creates a new task in a section.
@@ -17,8 +17,6 @@ export const createNewTask = async (taskData: Omit<TTask, 'position'>): Promise<
 
         const newTaskData = { ...taskData, position };
         const newTask = await createTask(newTaskData);
-
-        await addTaskToSection(String(taskData.section), String(newTask._id));
 
         return newTask;
     } catch (error) {
@@ -40,7 +38,7 @@ export const getTask = async (taskId: string): Promise<TaskDocument> => {
     return task;
 };
 
-export const getTasksBySectionId = async (sectionId: string): Promise<TaskDocument[]> => {
+export const getTasksOfASection = async (sectionId: string): Promise<TaskDocument[]> => {
     return await getTasksBySectionId(sectionId);
 }
 
@@ -56,8 +54,7 @@ export const deleteTask = async (taskId: string): Promise<TaskDocument> => {
     const deletedTask = await deleteTaskById(taskId);
     if (!deletedTask) {
         throw new CustomError('Task deletion failed', 500);
-    }
-    await removeTaskFromSection(String(deletedTask.section), taskId);
+    }    
     return deletedTask;
 };
 

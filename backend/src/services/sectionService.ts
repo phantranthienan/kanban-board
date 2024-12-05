@@ -1,6 +1,6 @@
 import { CustomError } from "../errors/CustomError";
-import { SectionDocument, TSection, createSection, getSectionById, updateSectionById, deleteSectionById, getSectionsByBoardId } from "../models/sectionModel";
-import { getNumberOfSectionsInBoard, addSectionToBoard, removeSectionFromBoard } from "../models/boardModel";
+import { SectionDocument, TSection, createSection, getSectionById, updateSectionById, deleteSectionById, getSectionsByBoardId, bulkUpdateSections } from "../models/sectionModel";
+import { getNumberOfSectionsInBoard } from "../models/boardModel";
 
 /**
  * Create a new section and add it to the board.
@@ -11,9 +11,10 @@ export const createNewSection = async (sectionData: Omit<TSection, 'position'>):
     try {
         const sectionsCount = await getNumberOfSectionsInBoard(String(sectionData.board));
         const position = sectionsCount;
+
         const newSectionData = { ...sectionData, position };
         const newSection = await createSection(newSectionData);
-        await addSectionToBoard(String(newSection.board), String(newSection._id));
+        
         return newSection;
     } catch (error) {
         throw new CustomError('Failed to create section', 500);
@@ -52,7 +53,6 @@ export const deleteSection = async (sectionId: string): Promise<SectionDocument>
     if (!deletedSection) {
         throw new CustomError('Section not found', 404);
     }
-    await removeSectionFromBoard(String(deletedSection.board), sectionId);
     return deletedSection;
 };
 
@@ -69,4 +69,15 @@ export const updateSection = async (sectionId: string, sectionData: Partial<TSec
         throw new CustomError('Section not found', 404);
     }
     return updatedSection;
+};
+
+
+/**
+ * Update positions of multiple sections within a board.
+ * @param {string} boardId - The ID of the board.
+ * @param {Array<{ id: string, position: number }>} sections - Sections with updated positions.
+ * @return {Promise<void>}
+ */
+export const updateSectionPositions = async (boardId: string, sections: { id: string; position: number }[]) => {
+    await bulkUpdateSections(boardId, sections);
 };

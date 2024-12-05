@@ -1,5 +1,6 @@
 import mongoose, { Schema, HydratedDocument, InferSchemaType } from 'mongoose';
-import { deleteTasksBySectionId } from './taskModel';
+import { Board } from './boardModel';
+import { Task } from './taskModel';
 
 const sectionSchema = new Schema({
     title: { 
@@ -19,6 +20,27 @@ const sectionSchema = new Schema({
         ref: 'Task' 
     }],
 });
+
+sectionSchema.set('toJSON', {
+    transform: (doc, ret) => {
+        ret.id = ret._id;
+        delete ret._id;
+        delete ret.__v;
+    }
+});
+
+sectionSchema.post('save', async (doc) => {
+    if (doc) {
+        await Board.findByIdAndUpdate(doc.board, { $push: { sections: doc._id } });
+    }
+});
+
+sectionSchema.post('findOneAndDelete', async (doc) => {
+    if (doc) {
+        await Task.deleteMany({ section: doc._id });
+        await Board.findByIdAndUpdate(doc.board, { $pull: { sections: doc._id } });
+    }
+})
 
 export type TSection = InferSchemaType<typeof sectionSchema>;
 
@@ -42,7 +64,7 @@ export const createSection = async (sectionData: TSection): Promise<SectionDocum
  * @return {Promise<SectionDocument | null>} The section document if found, otherwise null
  */
 export const getSectionById = async (id: string): Promise<SectionDocument | null> => {
-    return await Section.findById(id).populate('tasks');
+    return await Section.findById(id);
 };
 
 /**
@@ -51,7 +73,7 @@ export const getSectionById = async (id: string): Promise<SectionDocument | null
  * @return {Promise<SectionDocument[]>} The array of section documents for the board
  */
 export const getSectionsByBoardId = async (boardId: string): Promise<SectionDocument[]> => {
-    return await Section.find({ board: boardId }).populate('tasks');
+    return await Section.find({ board: boardId }).sort({ position: 1});
 }
 
 /**
@@ -70,7 +92,6 @@ export const updateSectionById = async (id: string, updateData: Partial<TSection
  * @return {Promise<SectionDocument | null>} The deleted section document, or null if not found
  */
 export const deleteSectionById = async (id: string): Promise<SectionDocument | null> => {
-    await deleteTasksBySectionId(id);
     return await Section.findByIdAndDelete(id);
 };
 
@@ -84,22 +105,20 @@ export const getNumberOfTasksInSection = async (id: string): Promise<number> => 
     return section?.tasks.length || 0;
 }
 
-/**
- * Add a task to a section
- * @param {string} sectionId - The ID of the section to add the task to
- * @param {string} taskId - The ID of the task to add to the section
- * @return {Promise<Void>} The updated section document
- */
-export const addTaskToSection = async (sectionId: string, taskId: string): Promise<void> => {
-    await Section.findByIdAndUpdate(sectionId, { $push: { tasks: taskId } });
-}
 
 /**
- * Remove a task from a section
- * @param {string} sectionId - The ID of the section to remove the task from
- * @param {string} taskId - The ID of the task to remove from the section
- * @return {Promise<Void>} The updated section document
+ * Bulk update sections' positions
+ * @param {string} boardId - The ID of the board.
+ * @param {Array<{ id: string, position: number }>} sections - Sections with updated positions.
+ * @return {Promise<void>}
  */
-export const removeTaskFromSection = async (sectionId: string, taskId: string): Promise<void> => {
-    await Section.findByIdAndUpdate(sectionId, { $pull: { tasks: taskId } });
+export const bulkUpdateSections = async (boardId: string, sections: Array<{ id: string, position: number }>): Promise<void> => {
+    const bulkOps = sections.map(({ id, position }) => ({
+        updateOne: {
+            filter: { _id: id, board: boardId },
+            update: { position },
+        }
+    }));
+
+    await Section.bulkWrite(bulkOps);
 }
