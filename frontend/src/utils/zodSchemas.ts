@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import dayjs from 'dayjs';
 
 export const loginSchema = z.object({
 	username: z.string().min(1, { message: 'Username is required' }),
@@ -25,5 +26,17 @@ export const registerSchema = z
 		path: ['confirmPassword'],
 	});
 
+export const taskSchema = z.object({
+	title: z.string().min(1, { message: 'Title is required' }),
+	description: z
+		.string()
+		.max(500, { message: 'Description must be less than 500 characters' }),
+	deadline: z.date().refine((value) => value >= dayjs().toDate(), {
+		message: 'Deadline must be in the future',
+	}),
+	subtasks: z.array(z.string()).default([]),
+});
+
 export type LoginInput = z.infer<typeof loginSchema>;
 export type RegisterInput = z.infer<typeof registerSchema>;
+export type TaskInput = z.infer<typeof taskSchema>;

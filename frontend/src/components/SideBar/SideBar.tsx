@@ -42,7 +42,11 @@ import {
 	DragEndEvent,
 } from '@dnd-kit/core';
 
-import { arrayMove, SortableContext } from '@dnd-kit/sortable';
+import {
+	arrayMove,
+	SortableContext,
+	verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
 
 import { stringToAvatar } from '../../utils/avatarHelpers';
 
@@ -249,7 +253,10 @@ const SideBar: React.FC = () => {
 					collisionDetection={closestCenter}
 					onDragEnd={handleDragEnd}
 				>
-					<SortableContext items={boards.map((board) => board.id)}>
+					<SortableContext
+						items={boards.map((board) => board.id)}
+						strategy={verticalListSortingStrategy}
+					>
 						{boards.map((board) => (
 							<BoardLink
 								id={board.id}

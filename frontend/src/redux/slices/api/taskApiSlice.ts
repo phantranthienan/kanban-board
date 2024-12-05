@@ -10,13 +10,13 @@ export const taskApi = createApi({
 	tagTypes: ['Task'],
 	endpoints: (builder) => ({
 		// Fetch all tasks for a specific section
-		getTasksBySectionId: builder.query<
+		getTasksOfSection: builder.query<
 			TTask[],
 			{ boardId: string; sectionId: string }
 		>({
 			query: ({ boardId, sectionId }) =>
 				`boards/${boardId}/sections/${sectionId}/tasks`, // Endpoint for fetching tasks
-			providesTags: (result, error, sectionId) =>
+			providesTags: (result, error, { sectionId }) =>
 				result
 					? [
 							...result.map(
@@ -40,7 +40,7 @@ export const taskApi = createApi({
 		}),
 
 		// Create a new task in a section
-		createTask: builder.mutation<TTask, Omit<TTask, 'id'>>({
+		createTask: builder.mutation<TTask, Omit<TTask, 'id' | 'position'>>({
 			query: (newTask) => ({
 				url: `boards/${newTask.board}/sections/${newTask.section}/tasks`, // Endpoint for creating a task
 				method: 'POST',
@@ -66,7 +66,7 @@ export const taskApi = createApi({
 			{ boardId: string; sectionId: string; taskId: string }
 		>({
 			query: ({ boardId, sectionId, taskId }) => ({
-				url: `boards/${boardId}sections/${sectionId}/tasks/${taskId}`, // Endpoint for deleting a task
+				url: `boards/${boardId}/sections/${sectionId}/tasks/${taskId}`, // Endpoint for deleting a task
 				method: 'DELETE',
 			}),
 			invalidatesTags: (result, error, { sectionId, taskId }) => [
@@ -78,7 +78,7 @@ export const taskApi = createApi({
 });
 
 export const {
-	useGetTasksBySectionIdQuery,
+	useGetTasksOfSectionQuery,
 	useGetTaskByIdQuery,
 	useCreateTaskMutation,
 	useUpdateTaskMutation,

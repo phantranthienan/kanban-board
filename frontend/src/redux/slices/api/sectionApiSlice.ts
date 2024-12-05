@@ -18,9 +18,9 @@ export const sectionApi = createApi({
 							...result.map(
 								({ id }) => ({ type: 'Section', id }) as SectionTag,
 							), // Add individual sections
-							{ type: 'Section' as const, id: 'LIST' } as SectionTag, // Tag for the list of sections
+							{ type: 'Section' as const, id: 'LIST' }, // Tag for the list of sections
 						]
-					: [{ type: 'Section' as const, id: 'LIST' } as SectionTag], // Tag for the list of sections
+					: [{ type: 'Section' as const, id: 'LIST' }], // Tag for the list of sections
 		}),
 		// Fetch a single section by ID
 		getSectionById: builder.query<
@@ -30,7 +30,7 @@ export const sectionApi = createApi({
 			query: ({ boardId, sectionId }) =>
 				`boards/${boardId}/sections/${sectionId}`, // Include both board and section IDs
 			providesTags: (result, error, { sectionId }) => [
-				{ type: 'Section', id: sectionId } as SectionTag,
+				{ type: 'Section', id: sectionId },
 			],
 		}),
 		// Create a new section
@@ -39,7 +39,7 @@ export const sectionApi = createApi({
 				url: `boards/${boardId}/sections`, // Endpoint for creating a new section
 				method: 'POST',
 			}),
-			invalidatesTags: [{ type: 'Section', id: 'LIST' } as SectionTag], // Invalidate the list to trigger a re-fetch
+			invalidatesTags: [{ type: 'Section', id: 'LIST' }], // Invalidate the list to trigger a re-fetch
 		}),
 		// Update an existing section
 		updateSection: builder.mutation<TSection, Partial<TSection>>({
@@ -48,9 +48,7 @@ export const sectionApi = createApi({
 				method: 'PUT',
 				body: updatedSection,
 			}),
-			invalidatesTags: (result, error, { id }) => [
-				{ type: 'Section', id } as SectionTag,
-			], // Invalidate the specific section
+			invalidatesTags: (result, error, { id }) => [{ type: 'Section', id }], // Invalidate the specific section
 		}),
 
 		// Delete an existing section
@@ -67,6 +65,18 @@ export const sectionApi = createApi({
 				{ type: 'Section', id: 'LIST' } as SectionTag, // Invalidate the list and the specific section
 			],
 		}),
+		// Reorder sections
+		reorderSections: builder.mutation<
+			void,
+			{ boardId: string; sections: { id: string; position: number }[] }
+		>({
+			query: ({ boardId, sections }) => ({
+				url: `boards/${boardId}/sections/reorder`, // Endpoint for reordering sections
+				method: 'PUT',
+				body: { sections }, // Send the reordered sections as the body
+			}),
+			invalidatesTags: [{ type: 'Section', id: 'LIST' }], // Invalidate the list of sections to trigger a re-fetch
+		}),
 	}),
 });
 
@@ -76,4 +86,5 @@ export const {
 	useCreateSectionMutation,
 	useUpdateSectionMutation,
 	useDeleteSectionMutation,
+	useReorderSectionsMutation,
 } = sectionApi;
