@@ -3,6 +3,7 @@ import { Link as RouterLink, useNavigate } from 'react-router-dom';
 
 import { showNotification } from '../redux/slices/notificationSlice';
 import { useAppDispatch } from '../hooks/storeHooks';
+import { useErrorHandler } from '../hooks/useErrorHandler';
 
 import { SubmitHandler, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -13,11 +14,11 @@ import { Stack, TextField, Typography, Link } from '@mui/material';
 import { LoadingButton } from '@mui/lab';
 
 import useAuth from '../hooks/useAuth';
-import { handleError } from '../utils/errorHandler';
 
 const Login: React.FC = () => {
 	const dispatch = useAppDispatch();
 	const navigate = useNavigate();
+	const handleError = useErrorHandler();
 
 	const { login } = useAuth();
 
@@ -44,7 +45,7 @@ const Login: React.FC = () => {
 			);
 			navigate('/');
 		} catch (error: unknown) {
-			handleError(error, dispatch);
+			handleError(error);
 		}
 	};
 

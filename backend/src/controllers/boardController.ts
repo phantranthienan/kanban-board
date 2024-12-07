@@ -63,8 +63,22 @@ export const updateBoard = async (req: Request, res: Response) => {
  * @param {Request} req - Express request object containing boardId.
  * @param {Response} res - Express response object.
  */
-export const deleteBoard = async (req: Request, res: Response) => {
+export const deleteBoard = async (req: AuthRequest, res: Response) => {
+    const userId = req.user!.id;
     const boardId = req.params.id;
-    await boardService.deleteBoard(boardId);
+    await boardService.deleteAndReorderBoards(userId, boardId);
     res.status(204).send();
+};
+
+/**
+ * Update positions of boards.
+ * @route PUT /boards/updatePositions
+ * @param {Request} req - Express request object containing board positions.
+ * @param {Response} res - Express response object.
+ */
+export const updateBoardPositions = async (req: AuthRequest, res: Response) => {
+    const userId = req.user!.id;
+    const boards = req.body.boards;
+    await boardService.updateBoardPositions(userId, boards);
+    res.status(200).send();
 };

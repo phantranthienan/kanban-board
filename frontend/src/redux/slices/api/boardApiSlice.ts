@@ -25,7 +25,7 @@ export const boardApi = createApi({
 		}),
 		updateBoard: builder.mutation<TBoard, Partial<TBoard>>({
 			query: (updatedBoard) => ({
-				url: 'boards/' + updatedBoard.id,
+				url: `boards/${updatedBoard.id}`,
 				method: 'PUT',
 				body: updatedBoard,
 			}),
@@ -33,10 +33,22 @@ export const boardApi = createApi({
 		}),
 		deleteBoard: builder.mutation<void, string>({
 			query: (id) => ({
-				url: 'boards/' + id,
+				url: `boards/${id}`,
 				method: 'DELETE',
 			}),
 			invalidatesTags: ['Board'],
+		}),
+		// Update multiple boards' positions in a single request
+		updateBoardsPositions: builder.mutation<
+			void,
+			{ id: string; position: number }[]
+		>({
+			query: (boards) => ({
+				url: 'boards/updatePositions',
+				method: 'POST',
+				body: { boards },
+			}),
+			invalidatesTags: [], // Invalidate cached boards to reflect changes
 		}),
 	}),
 });
@@ -47,4 +59,5 @@ export const {
 	useUpdateBoardMutation,
 	useDeleteBoardMutation,
 	useGetBoardQuery,
+	useUpdateBoardsPositionsMutation,
 } = boardApi;

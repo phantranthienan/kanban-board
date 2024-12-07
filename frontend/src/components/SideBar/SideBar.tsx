@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import useAuth from '../../hooks/useAuth';
+import { useErrorHandler } from '../../hooks/useErrorHandler';
 import {
 	useGetBoardsQuery,
 	useUpdateBoardMutation,
 	useCreateBoardMutation,
+	useUpdateBoardsPositionsMutation,
 } from '../../redux/slices/api/boardApiSlice';
 import { showNotification } from '../../redux/slices/notificationSlice';
 import { useAppDispatch } from '../../hooks/storeHooks';
@@ -25,8 +27,6 @@ import {
 
 import BoardLink from './BoardLink';
 import Loading from '../common/Loading';
-
-import { handleError } from '../../utils/errorHandler';
 
 import LogoutIcon from '@mui/icons-material/Logout';
 import AddBoxOutlinedIcon from '@mui/icons-material/AddBoxOutlined';
@@ -56,10 +56,12 @@ const SideBar: React.FC = () => {
 	const { user, logout } = useAuth();
 	const dispatch = useAppDispatch();
 	const navigate = useNavigate();
+	const handleError = useErrorHandler();
 
 	const { data: boardsData, isSuccess, isLoading } = useGetBoardsQuery();
 	const [updateBoard] = useUpdateBoardMutation();
 	const [createBoard] = useCreateBoardMutation();
+	const [updateBoardsPositions] = useUpdateBoardsPositionsMutation();
 
 	const [boards, setBoards] = useState<TBoard[]>([]);
 	const [initialBoards, setInitialBoards] = useState<TBoard[]>([]);
@@ -83,19 +85,34 @@ const SideBar: React.FC = () => {
 		}),
 	);
 
-	// Compare current board positions with initial ones and update if changed
-	const compareAndUpdateBoards = (updatedBoards: TBoard[]) => {
-		updatedBoards.forEach((board, index) => {
-			const initialBoard = initialBoards.find((b) => b.id === board.id);
-			if (initialBoard && initialBoard.position !== index) {
-				updateBoard({ id: board.id, position: index });
-			}
-		});
-		setInitialBoards(updatedBoards); // Update initial boards to new order
-	};
+	// // Compare current board positions with initial ones and update if changed
+	// const compareAndUpdateBoards = (updatedBoards: TBoard[]) => {
+	// 	updatedBoards.forEach((board, index) => {
+	// 		const initialBoard = initialBoards.find((b) => b.id === board.id);
+	// 		if (initialBoard && initialBoard.position !== index) {
+	// 			updateBoard({ id: board.id, position: index });
+	// 		}
+	// 	});
+	// 	setInitialBoards(updatedBoards); // Update initial boards to new order
+	// };
 
-	// Handle board reordering after drag and drop
-	const handleDragEnd = (event: DragEndEvent) => {
+	// // Handle board reordering after drag and drop
+	// const handleDragEnd = (event: DragEndEvent) => {
+	// 	const { active, over } = event;
+	// 	if (active.id !== over?.id) {
+	// 		setBoards((prevBoards) => {
+	// 			const oldIndex = prevBoards.findIndex(
+	// 				(board) => board.id === active.id,
+	// 			);
+	// 			const newIndex = prevBoards.findIndex((board) => board.id === over?.id);
+	// 			const updatedBoards = arrayMove(prevBoards, oldIndex, newIndex);
+	// 			compareAndUpdateBoards(updatedBoards); // Update positions
+	// 			return updatedBoards;
+	// 		});
+	// 	}
+	// };
+
+	const handleDragEnd = async (event: DragEndEvent) => {
 		const { active, over } = event;
 		if (active.id !== over?.id) {
 			setBoards((prevBoards) => {
@@ -103,10 +120,30 @@ const SideBar: React.FC = () => {
 					(board) => board.id === active.id,
 				);
 				const newIndex = prevBoards.findIndex((board) => board.id === over?.id);
+
+				// Optimistically update the UI
 				const updatedBoards = arrayMove(prevBoards, oldIndex, newIndex);
-				compareAndUpdateBoards(updatedBoards); // Update positions
+				setInitialBoards(updatedBoards); // Sync initialBoards for reference
+
+				bulkUpdatePositions(updatedBoards);
+				// Perform bulk update asynchronously
+
 				return updatedBoards;
 			});
+		}
+	};
+
+	// Function to perform bulk updates
+	const bulkUpdatePositions = async (updatedBoards: TBoard[]) => {
+		try {
+			const boardsToUpdate = updatedBoards.map((board, index) => ({
+				id: board.id,
+				position: index,
+			}));
+			await updateBoardsPositions(boardsToUpdate); // Call your bulk API here
+		} catch (error) {
+			handleError(error);
+			setBoards(initialBoards); // Reset to initial state
 		}
 	};
 
@@ -121,7 +158,7 @@ const SideBar: React.FC = () => {
 			);
 			navigate(`/boards/${data!.id}`);
 		} catch (error: unknown) {
-			handleError(error, dispatch);
+			handleError(error);
 		}
 	};
 
@@ -142,7 +179,9 @@ const SideBar: React.FC = () => {
 			variant="permanent"
 			sx={{
 				width: sidebarWidth,
-				height: '100%',
+				height: '100vh',
+				display: 'flex',
+				flexDirection: 'column',
 			}}
 		>
 			<List
@@ -150,7 +189,8 @@ const SideBar: React.FC = () => {
 				sx={{
 					width: sidebarWidth,
 					height: '100%',
-					overflow: 'hidden',
+					flexShrink: 0,
+					overflowY: 'hidden',
 				}}
 			>
 				{/* User Profile and Logout Button */}
@@ -187,9 +227,10 @@ const SideBar: React.FC = () => {
 						}}
 					>
 						<Typography
-							variant="body1"
+							variant="h6"
 							sx={{
 								textTransform: 'uppercase',
+								fontWeight: 'normal',
 							}}
 						>
 							favorite
@@ -203,12 +244,79 @@ const SideBar: React.FC = () => {
 						</IconButton>
 					</Box>
 				</ListItemButton>
-				{boards.some((board) => board.favorite) && (
-					<Collapse in={showFavorites} timeout="auto" unmountOnExit>
+
+				{/* Favorite Boards */}
+				<Box
+					sx={{
+						flexGrow: 0,
+						maxHeight: '200px', // Adjust as needed
+						overflowY: 'auto', // Allow scrolling only for items
+					}}
+				>
+					{boards.some((board) => board.favorite) && (
+						<Collapse in={showFavorites} timeout="auto" unmountOnExit>
+							<List disablePadding>
+								{boards
+									.filter((board) => board.favorite)
+									.map((board) => (
+										<BoardLink
+											id={board.id}
+											key={board.id}
+											icon={board.icon}
+											title={board.title}
+											favorite={board.favorite}
+											onFavoriteClick={(e) => handleFavoriteClick(e, board.id)}
+										/>
+									))}
+							</List>
+						</Collapse>
+					)}
+				</Box>
+
+				<Divider />
+
+				{/* All Boards Header with Add Icon */}
+				<Box
+					sx={{
+						flexGrow: 1,
+						overflowY: 'auto',
+					}}
+				>
+					<ListItem>
+						<Box
+							sx={{
+								display: 'flex',
+								justifyContent: 'space-between',
+								alignItems: 'center',
+								width: '100%',
+							}}
+						>
+							<Typography
+								variant="h6"
+								sx={{
+									textTransform: 'uppercase',
+									fontWeight: 'normal',
+								}}
+							>
+								all boards
+							</Typography>
+							<IconButton onClick={handleCreateBoard}>
+								<AddBoxOutlinedIcon fontSize="inherit" />
+							</IconButton>
+						</Box>
+					</ListItem>
+					{isLoading && <Loading />}
+					<DndContext
+						sensors={sensors}
+						collisionDetection={closestCenter}
+						onDragEnd={handleDragEnd}
+					>
 						<List disablePadding>
-							{boards
-								.filter((board) => board.favorite)
-								.map((board) => (
+							<SortableContext
+								items={boards.map((board) => board.id)}
+								strategy={verticalListSortingStrategy}
+							>
+								{boards.map((board) => (
 									<BoardLink
 										id={board.id}
 										key={board.id}
@@ -218,57 +326,10 @@ const SideBar: React.FC = () => {
 										onFavoriteClick={(e) => handleFavoriteClick(e, board.id)}
 									/>
 								))}
+							</SortableContext>
 						</List>
-					</Collapse>
-				)}
-
-				<Divider />
-
-				{/* All Boards Header with Add Icon */}
-				<ListItem>
-					<Box
-						sx={{
-							display: 'flex',
-							justifyContent: 'space-between',
-							alignItems: 'center',
-							width: '100%',
-						}}
-					>
-						<Typography
-							variant="body1"
-							sx={{
-								textTransform: 'uppercase',
-							}}
-						>
-							all boards
-						</Typography>
-						<IconButton onClick={handleCreateBoard}>
-							<AddBoxOutlinedIcon fontSize="inherit" />
-						</IconButton>
-					</Box>
-				</ListItem>
-				{isLoading && <Loading />}
-				<DndContext
-					sensors={sensors}
-					collisionDetection={closestCenter}
-					onDragEnd={handleDragEnd}
-				>
-					<SortableContext
-						items={boards.map((board) => board.id)}
-						strategy={verticalListSortingStrategy}
-					>
-						{boards.map((board) => (
-							<BoardLink
-								id={board.id}
-								key={board.id}
-								icon={board.icon}
-								title={board.title}
-								favorite={board.favorite}
-								onFavoriteClick={(e) => handleFavoriteClick(e, board.id)}
-							/>
-						))}
-					</SortableContext>
-				</DndContext>
+					</DndContext>
+				</Box>
 			</List>
 		</Drawer>
 	);

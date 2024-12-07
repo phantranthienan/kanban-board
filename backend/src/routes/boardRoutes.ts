@@ -16,6 +16,9 @@ router.post('/', authMiddleware, boardController.createBoard);
 /** GET /boards/:id - Get a specific board by its ID */
 router.get('/:id', authMiddleware, boardController.getBoardById);
 
+/** POST /boards/updatePositions - Update positions of boards */
+router.post('/updatePositions', authMiddleware, boardController.updateBoardPositions);
+
 /** PUT /boards/:id - Update a specific board by its ID */
 router.put('/:id', authMiddleware, boardController.updateBoard);
 

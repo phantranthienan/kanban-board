@@ -15,6 +15,7 @@ import { SortableContext, arrayMove } from '@dnd-kit/sortable';
 
 import { useAppDispatch } from '../../hooks/storeHooks';
 import { showNotification } from '../../redux/slices/notificationSlice';
+import { useErrorHandler } from '../../hooks/useErrorHandler';
 import {
 	useGetSectionsQuery,
 	useCreateSectionMutation,
@@ -29,8 +30,6 @@ import { Box, Typography } from '@mui/material';
 import SectionColumn from './SectionColumn';
 import TaskItem from './TaskItem';
 import Loading from '../common/Loading';
-
-import { handleError } from '../../utils/errorHandler';
 
 import { TSection } from '../../types/sections';
 import { TTask } from '../../types/tasks';
@@ -88,6 +87,7 @@ const BoardBody: React.FC<BoardBodyProps> = ({ boardId }) => {
 
 	// Dispatch
 	const dispatch = useAppDispatch();
+	const handleError = useErrorHandler();
 
 	const sensors = useSensors(
 		useSensor(PointerSensor, {
@@ -105,7 +105,7 @@ const BoardBody: React.FC<BoardBodyProps> = ({ boardId }) => {
 				showNotification({ message: 'Section created', type: 'success' }),
 			);
 		} catch (error: unknown) {
-			handleError(error, dispatch);
+			handleError(error);
 		}
 	};
 
@@ -134,27 +134,70 @@ const BoardBody: React.FC<BoardBodyProps> = ({ boardId }) => {
 		if (activeData.type === 'task' && overData?.type === 'task') {
 			const activeTask = activeData.task;
 			const overSectionId = overData?.task?.section;
-
-			if (overSectionId && activeTask.section !== overSectionId) {
-				setLocalTasks((prev) =>
-					prev?.map((task) =>
-						task.id === activeTask.id
-							? { ...task, section: overSectionId }
-							: task,
-					),
-				);
-			}
-		}
-		if (activeData.type === 'task' && overData?.type === 'section') {
-			const activeTask = activeData.task;
-			const overSectionId = over.id;
-
-			if (activeTask.section !== overSectionId) {
+			const numberOfTasksInOverSection = localTasks?.filter(
+				(task) => task.section === overSectionId,
+			)?.length;
+			if (activeTaskOriginSection !== overSectionId) {
 				setLocalTasks((prev) =>
 					prev
 						?.map((task) =>
 							task.id === activeTask.id
-								? { ...task, section: overSectionId }
+								? {
+										...task,
+										section: overSectionId,
+										position: numberOfTasksInOverSection!,
+									}
+								: task,
+						)
+						.sort((a, b) => a.position - b.position),
+				);
+			}
+			// } else {
+			// 	setLocalTasks((prev) =>
+			// 		prev
+			// 			?.map((task) =>
+			// 				task.id === activeTask.id
+			// 					? {
+			// 							...task,
+			// 							section: activeTaskOriginSection!,
+			// 							position: activeTaskOriginPosition!,
+			// 						}
+			// 					: task,
+			// 			)
+			// 			.sort((a, b) => a.position - b.position),
+			// 	);
+			// }
+		}
+		if (activeData.type === 'task' && overData?.type === 'section') {
+			const activeTask = activeData.task;
+			const overSectionId = over.id;
+			const numberOfTasksInOverSection = localTasks?.filter(
+				(task) => task.section === overSectionId,
+			)?.length;
+			if (activeTaskOriginSection !== overSectionId) {
+				setLocalTasks((prev) =>
+					prev
+						?.map((task) =>
+							task.id === activeTask.id
+								? {
+										...task,
+										section: overSectionId,
+										position: numberOfTasksInOverSection!,
+									}
+								: task,
+						)
+						.sort((a, b) => a.position - b.position),
+				);
+			} else {
+				setLocalTasks((prev) =>
+					prev
+						?.map((task) =>
+							task.id === activeTask.id
+								? {
+										...task,
+										section: activeTaskOriginSection! as string,
+										position: activeTaskOriginPosition!,
+									}
 								: task,
 						)
 						.sort((a, b) => a.position - b.position),
@@ -164,7 +207,6 @@ const BoardBody: React.FC<BoardBodyProps> = ({ boardId }) => {
 	};
 
 	const handleDragEnd = async (event: DragEndEvent) => {
-		// Clear active items
 		setActiveSection(null);
 		setActiveTask(null);
 
@@ -201,13 +243,14 @@ const BoardBody: React.FC<BoardBodyProps> = ({ boardId }) => {
 			try {
 				await reorderSections({ boardId, sections: updatedSections }).unwrap();
 			} catch (error) {
-				handleError(error, dispatch);
+				handleError(error);
 				setLocalSections(sections);
 			}
 			return;
 		}
 
-		if (activeData.type === 'task') {
+		// Handle task drop
+		if (activeData?.type === 'task') {
 			const activeTask = activeData.task;
 			const overTask = overData?.task;
 
@@ -227,11 +270,15 @@ const BoardBody: React.FC<BoardBodyProps> = ({ boardId }) => {
 				newPosition = overTask.position;
 			}
 
+			console.log('oldPosition:', oldPosition);
+			console.log('newPosition:', newPosition);
+
 			const isSameSection = sourceSection === targetSection;
 
 			if (isSameSection && oldPosition === newPosition) return;
 
 			if (isSameSection) {
+				// Reorder tasks in the same section
 				const tasksInSameSection = localTasks!.filter(
 					(task) => task.section === sourceSection,
 				);
@@ -258,55 +305,39 @@ const BoardBody: React.FC<BoardBodyProps> = ({ boardId }) => {
 				);
 			} else {
 				const tasksInSourceSection = localTasks!.filter(
-					(task) => task.section === sourceSection,
+					(task) => task.section === sourceSection && task.id !== activeTask.id,
 				);
 				const tasksInTargetSection = localTasks!.filter(
-					(task) => task.section === targetSection,
+					(task) => task.section === targetSection && task.id !== activeTask.id,
 				);
 
-				console.log('tasksInTargetSection:', tasksInTargetSection);
+				const updatedSourceTasks = tasksInSourceSection.map((task, index) => ({
+					...task,
+					position: index,
+				}));
 
-				const updatedSourceTasks = tasksInSourceSection
-					.map((task) => {
-						if (task.position > oldPosition) {
-							return {
-								...task,
-								position: task.position - 1,
-							};
-						}
-						return task;
-					})
-					.sort((a, b) => a.position - b.position);
+				const updatedTargetTasks = [
+					...tasksInTargetSection.slice(0, newPosition),
+					{ ...activeTask, section: targetSection, position: newPosition },
+					...tasksInTargetSection.slice(newPosition),
+				].map((task, index) => ({
+					...task,
+					position: index,
+				}));
 
-				const updatedTargetTasks = tasksInTargetSection
-					.map((task) => {
-						if (task.id === activeTask.id) {
-							return {
-								...task,
-								section: targetSection,
-								position: newPosition,
-							};
-						} else if (task.position >= newPosition) {
-							return {
-								...task,
-								position: task.position + 1,
-							};
-						}
-						return task;
-					})
-					.sort((a, b) => a.position - b.position);
+				const updatedTasks = [...updatedSourceTasks, ...updatedTargetTasks];
+				const updatedTasksMap = new Map(
+					updatedTasks.map((task) => [task.id, task]),
+				);
 
-				console.log('updatedTargetTasks:', updatedTargetTasks);
-
-				setLocalTasks((prev) => {
-					const updatedTasks = [...updatedSourceTasks, ...updatedTargetTasks];
-					return prev
-						?.map((task) => updatedTasks.find((t) => t.id === task.id) ?? task)
-						.sort((a, b) => a.position - b.position);
-				});
+				setLocalTasks((prev) =>
+					prev
+						?.map((task) => updatedTasksMap.get(task.id) ?? task)
+						.sort((a, b) => a.position - b.position),
+				);
 			}
-			setActiveTaskOriginSection(null);
-			setActiveTaskOriginPosition(null);
+
+			// Update backend
 			try {
 				await moveTask({
 					boardId,
@@ -316,7 +347,7 @@ const BoardBody: React.FC<BoardBodyProps> = ({ boardId }) => {
 					position: newPosition,
 				}).unwrap();
 			} catch (error) {
-				handleError(error, dispatch);
+				handleError(error);
 				setLocalTasks(tasks);
 			}
 		}

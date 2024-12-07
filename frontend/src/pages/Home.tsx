@@ -1,5 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useErrorHandler } from '../hooks/useErrorHandler';
 
 import { useCreateBoardMutation } from '../redux/slices/api/boardApiSlice';
 import { useAppDispatch } from '../hooks/storeHooks';
@@ -8,11 +9,10 @@ import { showNotification } from '../redux/slices/notificationSlice';
 import { Box, Typography } from '@mui/material';
 import { LoadingButton } from '@mui/lab';
 
-import { handleError } from '../utils/errorHandler';
-
 const Home: React.FC = () => {
 	const dispatch = useAppDispatch();
 	const navigate = useNavigate();
+	const handleError = useErrorHandler();
 
 	const [createBoard, { isLoading }] = useCreateBoardMutation();
 
@@ -27,7 +27,7 @@ const Home: React.FC = () => {
 			);
 			navigate(`/boards/${data!.id}`);
 		} catch (error: unknown) {
-			handleError(error, dispatch);
+			handleError(error);
 		}
 	};
 

@@ -6,7 +6,8 @@ import {
     getBoardsByUserId, 
     getBoardById,
     updateBoardById,
-    deleteBoardById 
+    deleteBoardById,
+    bulkUpdatePositions, 
 } from "../models/boardModel";
 
 /**
@@ -66,14 +67,46 @@ export const updateBoard = async (boardId: string, boardData: Partial<TBoard>): 
 }
 
 /**
- * Delete a specific board by its ID.
- * @param {string} boardId - The ID of the board to delete.
- * @return {Promise<BoardDocument | null>} The deleted board document if found, otherwise null.
+ * Deletes a board and reorders the remaining boards for a user.
+ * @param userId - The ID of the user whose board is to be deleted.
+ * @param boardId - The ID of the board to be deleted.
+ * @returns A promise that resolves when the board is deleted and the remaining boards are reordered.
+ * @throws {CustomError} If the board to be deleted is not found.
  */
-export const deleteBoard = async (boardId: string): Promise<BoardDocument | null> => {
-    const deletedBoard = await deleteBoardById(boardId);
-    if (!deletedBoard) {
+export const deleteAndReorderBoards = async (
+    userId: string,
+    boardId: string
+): Promise<void> => {
+    // Fetch the board to be deleted
+    const boardToDelete = await getBoardById(boardId);
+
+    if (!boardToDelete) {
         throw new CustomError('Board not found', 404);
     }
-    return deletedBoard;
-}
+
+    // Delete the board
+    await deleteBoardById(boardId);
+
+    // Fetch and reorder boards with positions greater than the deleted board
+    const boardsToUpdate = await getBoardsByUserId(userId);
+    const updates = boardsToUpdate
+        .filter((board) => board.position > boardToDelete.position)
+        .map((board) =>
+            updateBoardById(board.id, { position: board.position - 1 })
+        );
+
+    // Perform updates in parallel
+    await Promise.all(updates);
+};
+
+
+/**
+ * Update the positions of boards for a user.
+ * @param {string} userId - The ID of the user whose boards need to be updated.
+ * @param {string[]} boardIds - An array of board IDs in the order they should be positioned.
+ * @return {Promise<BoardDocument[]>} An array of the updated board documents.
+ */
+export const updateBoardPositions = async (userId: string, boards: {id: string, position: number}[]): Promise<void> => {
+    await bulkUpdatePositions(userId, boards);
+};
+    

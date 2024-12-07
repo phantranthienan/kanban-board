@@ -73,8 +73,8 @@ export const updateTask = async (req: Request, res: Response) => {
  * @param {Response} res - Express response object.
  */
 export const deleteTask = async (req: Request, res: Response) => {
-    const { taskId } = req.params;
-    await taskService.deleteTask(taskId); 
+    const { sectionId, taskId } = req.params;
+    await taskService.deleteAndReorderTasks(sectionId, taskId); 
     res.status(204).send(); 
 };
 

@@ -116,3 +116,19 @@ export const updateBoardById = async (id: string, data: Partial<TBoard>): Promis
 export const deleteBoardById = async (id: string): Promise<BoardDocument | null> => {
     return await Board.findByIdAndDelete(id);
 }
+
+/**
+ * Bulk update positions of boards.
+ * @param {string} userId - The ID of the user whose boards need to be updated.
+ * @param {Array<{ id: string, position: number }>} boards - Array of board IDs and positions.
+ * @return {Promise<void>}
+ */
+export const bulkUpdatePositions = async (userId: string, boards: Array<{ id: string, position: number }>): Promise<void> => {
+    const bulkOps = boards.map(board => ({
+        updateOne: {
+            filter: { user: userId, _id: board.id },
+            update: { position: board.position },
+        }
+    }));
+    Board.bulkWrite(bulkOps);
+};

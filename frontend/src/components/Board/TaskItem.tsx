@@ -3,6 +3,7 @@ import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 
 import { useAppDispatch } from '../../hooks/storeHooks';
+import { useErrorHandler } from '../../hooks/useErrorHandler';
 import { showNotification } from '../../redux/slices/notificationSlice';
 import {
 	useDeleteTaskMutation,
@@ -17,8 +18,6 @@ import TaskModal from './TaskModal';
 import { TTask } from '../../types/tasks';
 import { TaskInput } from '../../utils/zodSchemas';
 
-import { handleError } from '../../utils/errorHandler';
-
 type TaskItemProps = {
 	task: TTask;
 };
@@ -32,7 +31,7 @@ const TaskItem: React.FC<TaskItemProps> = ({ task }) => {
 	const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 	const [isModalOpen, setIsModalOpen] = useState(false);
 	const dispatch = useAppDispatch();
-
+	const handleError = useErrorHandler();
 	// Drag and drop
 	const {
 		attributes,
@@ -83,7 +82,7 @@ const TaskItem: React.FC<TaskItemProps> = ({ task }) => {
 				}),
 			);
 		} catch (error) {
-			handleError(error, dispatch);
+			handleError(error);
 		}
 		handleMenuClose();
 	};
@@ -103,7 +102,7 @@ const TaskItem: React.FC<TaskItemProps> = ({ task }) => {
 				}),
 			);
 		} catch (error) {
-			handleError(error, dispatch);
+			handleError(error);
 		}
 	};
 

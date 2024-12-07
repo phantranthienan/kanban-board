@@ -3,6 +3,7 @@ import { Link as RouterLink, useNavigate } from 'react-router-dom';
 
 import { showNotification } from '../redux/slices/notificationSlice';
 import { useAppDispatch } from '../hooks/storeHooks';
+import { useErrorHandler } from '../hooks/useErrorHandler';
 
 import { SubmitHandler, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -12,11 +13,11 @@ import { registerSchema, RegisterInput } from '../utils/zodSchemas';
 import { Stack, TextField, Button, Typography, Link } from '@mui/material';
 
 import { useRegisterMutation } from '../redux/slices/api/authApiSlice';
-import { handleError } from '../utils/errorHandler';
 
 const Register: React.FC = () => {
 	const dispatch = useAppDispatch();
 	const navigate = useNavigate();
+	const handleError = useErrorHandler();
 
 	// Access the register mutation from RTK Query
 	const [registerUser, { isLoading }] = useRegisterMutation();
@@ -46,7 +47,7 @@ const Register: React.FC = () => {
 			);
 			navigate('/login');
 		} catch (error: unknown) {
-			handleError(error, dispatch);
+			handleError(error);
 		}
 	};
 

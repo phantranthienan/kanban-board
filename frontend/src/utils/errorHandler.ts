@@ -1,8 +1,13 @@
 import { FetchBaseQueryError } from '@reduxjs/toolkit/query';
 import { AppDispatch } from '../redux/store';
 import { showNotification } from '../redux/slices/notificationSlice';
+import { NavigateFunction } from 'react-router-dom';
 
-export const handleError = (error: unknown, dispatch: AppDispatch) => {
+export const handleError = (
+	error: unknown,
+	dispatch: AppDispatch,
+	navigate: NavigateFunction, // Pass the navigate function
+) => {
 	if (error && typeof error === 'object') {
 		if ('status' in error) {
 			// Handle RTK Query FetchBaseQueryError
@@ -13,6 +18,11 @@ export const handleError = (error: unknown, dispatch: AppDispatch) => {
 				message = (fetchError.data as { message?: string })?.message || message;
 			} else if (fetchError.status) {
 				message = `HTTP Error: ${fetchError.status}`;
+			}
+
+			if (fetchError.status === 401) {
+				// Redirect to login if status is 401
+				navigate('/login');
 			}
 
 			dispatch(

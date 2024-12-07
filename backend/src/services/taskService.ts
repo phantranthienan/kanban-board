@@ -61,20 +61,38 @@ export const getTasksOfABoard = async (boardId: string): Promise<TaskDocument[]>
 }
 
 /**
- * Deletes a task by its ID.
- * Removes the task from the database and ensures that the task ID is also
- * removed from the corresponding section's tasks array.
- * @param {string} taskId - The ID of the task to delete.
- * @return {Promise<TaskDocument>} The deleted task document if found and successfully deleted.
- * @throws {CustomError} Throws an error if the task is not found or deletion fails.
+ * Deletes a task by its ID and reorders the remaining tasks in the same section.
+ * @param sectionId - The ID of the section containing the task.
+ * @param taskId - The ID of the task to be deleted.
+ * @returns A promise that resolves when the task is deleted and the remaining tasks are reordered.
+ * @throws {CustomError} If the task is not found.
  */
-export const deleteTask = async (taskId: string): Promise<TaskDocument> => {
-    const deletedTask = await deleteTaskById(taskId);
-    if (!deletedTask) {
-        throw new CustomError('Task deletion failed', 500);
-    }    
-    return deletedTask;
+export const deleteAndReorderTasks = async (
+    sectionId: string,
+    taskId: string
+): Promise<void> => {
+    // Fetch the task to be deleted
+    const taskToDelete = await getTaskById(taskId);
+
+    if (!taskToDelete) {
+        throw new CustomError('Task not found', 404);
+    }
+
+    // Delete the task
+    await deleteTaskById(taskId);
+
+    // Fetch and reorder tasks with positions greater than the deleted task
+    const tasksToUpdate = await getTasksBySectionId(sectionId);
+    const updates = tasksToUpdate
+        .filter((task) => task.position > taskToDelete.position)
+        .map((task) =>
+            updateTaskById(task.id, { position: task.position - 1 })
+        );
+
+    // Perform updates in parallel
+    await Promise.all(updates);
 };
+
 
 /**
  * Updates a task by its ID.

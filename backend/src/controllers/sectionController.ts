@@ -65,7 +65,7 @@ export const deleteSection = async (req: Request, res: Response) => {
 
 /**
  * Reorder sections within a board.
- * @route PATCH /boards/:boardId/sections/reorder
+ * @route PUT /boards/:boardId/sections/reorder
  * @param {Request} req - Express request object containing reordered sections.
  * @param {Response} res - Express response object.
  */

@@ -4,6 +4,7 @@ import { CSS } from '@dnd-kit/utilities';
 import debounce from 'lodash/debounce';
 
 import { useAppDispatch } from '../../hooks/storeHooks';
+import { useErrorHandler } from '../../hooks/useErrorHandler';
 import { showNotification } from '../../redux/slices/notificationSlice';
 import {
 	useDeleteSectionMutation,
@@ -19,7 +20,6 @@ import AddIcon from '@mui/icons-material/AddCircleOutlineOutlined';
 
 import { TSection } from '../../types/sections';
 import { TaskInput } from '../../utils/zodSchemas';
-import { handleError } from '../../utils/errorHandler';
 import { TTask } from '../../types/tasks';
 
 type SectionColumnProps = {
@@ -39,6 +39,7 @@ const SectionColumn: React.FC<SectionColumnProps> = ({ section, tasks }) => {
 	const taskIds = useMemo(() => tasks.map((task) => task.id) ?? [], [tasks]);
 
 	const dispatch = useAppDispatch();
+	const handleError = useErrorHandler();
 
 	// Drag and drop
 	const {
@@ -91,7 +92,7 @@ const SectionColumn: React.FC<SectionColumnProps> = ({ section, tasks }) => {
 				showNotification({ message: 'Section deleted', type: 'success' }),
 			);
 		} catch (error: unknown) {
-			handleError(error, dispatch);
+			handleError(error);
 		}
 	};
 
@@ -106,7 +107,7 @@ const SectionColumn: React.FC<SectionColumnProps> = ({ section, tasks }) => {
 				}),
 			);
 		} catch (error: unknown) {
-			handleError(error, dispatch);
+			handleError(error);
 		}
 	};
 
