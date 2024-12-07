@@ -47,11 +47,7 @@ import {
 	restrictToParentElement,
 } from '@dnd-kit/modifiers';
 
-import {
-	arrayMove,
-	SortableContext,
-	verticalListSortingStrategy,
-} from '@dnd-kit/sortable';
+import { arrayMove, SortableContext } from '@dnd-kit/sortable';
 
 import { stringToAvatar } from '../../utils/avatarHelpers';
 
