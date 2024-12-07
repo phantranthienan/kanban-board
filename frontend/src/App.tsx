@@ -11,8 +11,8 @@ import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 
 import ProtectedRoute from './components/common/ProtectedRoute';
-import AuthLayout from './layouts/AuthLayout';
-import AppLayout from './layouts/AppLayout';
+import AuthLayout from './components/layouts/AuthLayout';
+import AppLayout from './components/layouts/AppLayout';
 import { Home, Login, Register, Board } from './pages';
 import { AuthProvider } from './contexts/AuthContext';
 

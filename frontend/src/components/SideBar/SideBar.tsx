@@ -43,6 +43,11 @@ import {
 } from '@dnd-kit/core';
 
 import {
+	restrictToVerticalAxis,
+	restrictToParentElement,
+} from '@dnd-kit/modifiers';
+
+import {
 	arrayMove,
 	SortableContext,
 	verticalListSortingStrategy,
@@ -75,6 +80,9 @@ const SideBar: React.FC = () => {
 	}, [isSuccess, boardsData]);
 
 	const sidebarWidth = 250;
+	const maxHeight = showFavorites
+		? 'calc(100vh - 20% - 72px - 2 * 64px - 0.8 * 2px)'
+		: 'calc(100vh - 72px - 2 * 64px - 0.8 * 2px)';
 
 	// Configure DnD with sensor to activate dragging after a slight movement
 	const sensors = useSensors(
@@ -175,13 +183,16 @@ const SideBar: React.FC = () => {
 
 	return (
 		<Drawer
-			container={document.body}
+			// container={document.body}
 			variant="permanent"
 			sx={{
 				width: sidebarWidth,
 				height: '100vh',
 				display: 'flex',
 				flexDirection: 'column',
+				'& .MuiDrawer-paper': {
+					overflowY: 'hidden',
+				},
 			}}
 		>
 			<List
@@ -189,8 +200,7 @@ const SideBar: React.FC = () => {
 				sx={{
 					width: sidebarWidth,
 					height: '100%',
-					flexShrink: 0,
-					overflowY: 'hidden',
+					flex: '0 0 auto', // Prevent header from growing/shrinking
 				}}
 			>
 				{/* User Profile and Logout Button */}
@@ -199,7 +209,7 @@ const SideBar: React.FC = () => {
 						direction="row"
 						justifyContent="space-between"
 						alignItems="center"
-						sx={{ width: '100%' }}
+						sx={{ width: '100%', height: '56px' }}
 						paddingY={1}
 					>
 						<Stack direction="row" alignItems="center" spacing={1}>
@@ -223,6 +233,7 @@ const SideBar: React.FC = () => {
 							display: 'flex',
 							justifyContent: 'space-between',
 							alignItems: 'center',
+							height: '48px',
 							width: '100%',
 						}}
 					>
@@ -248,8 +259,7 @@ const SideBar: React.FC = () => {
 				{/* Favorite Boards */}
 				<Box
 					sx={{
-						flexGrow: 0,
-						maxHeight: '200px', // Adjust as needed
+						maxHeight: '20%', // Adjust as needed
 						overflowY: 'auto', // Allow scrolling only for items
 					}}
 				>
@@ -276,45 +286,50 @@ const SideBar: React.FC = () => {
 				<Divider />
 
 				{/* All Boards Header with Add Icon */}
+				<ListItem>
+					<Box
+						sx={{
+							display: 'flex',
+							justifyContent: 'space-between',
+							alignItems: 'center',
+							width: '100%',
+							height: '48px',
+						}}
+					>
+						<Typography
+							variant="h6"
+							sx={{
+								textTransform: 'uppercase',
+								fontWeight: 'normal',
+							}}
+						>
+							all boards
+						</Typography>
+						<IconButton onClick={handleCreateBoard}>
+							<AddBoxOutlinedIcon fontSize="inherit" />
+						</IconButton>
+					</Box>
+				</ListItem>
+				{isLoading && <Loading />}
 				<Box
 					sx={{
 						flexGrow: 1,
+						maxHeight: maxHeight, // Adjust as needed
 						overflowY: 'auto',
+						position: 'relative',
 					}}
 				>
-					<ListItem>
-						<Box
-							sx={{
-								display: 'flex',
-								justifyContent: 'space-between',
-								alignItems: 'center',
-								width: '100%',
-							}}
-						>
-							<Typography
-								variant="h6"
-								sx={{
-									textTransform: 'uppercase',
-									fontWeight: 'normal',
-								}}
-							>
-								all boards
-							</Typography>
-							<IconButton onClick={handleCreateBoard}>
-								<AddBoxOutlinedIcon fontSize="inherit" />
-							</IconButton>
-						</Box>
-					</ListItem>
-					{isLoading && <Loading />}
 					<DndContext
 						sensors={sensors}
 						collisionDetection={closestCenter}
 						onDragEnd={handleDragEnd}
+						modifiers={[restrictToParentElement, restrictToVerticalAxis]}
+						autoScroll={true}
 					>
 						<List disablePadding>
 							<SortableContext
 								items={boards.map((board) => board.id)}
-								strategy={verticalListSortingStrategy}
+								// strategy={verticalListSortingStrategy}
 							>
 								{boards.map((board) => (
 									<BoardLink

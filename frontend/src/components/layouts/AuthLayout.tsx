@@ -2,7 +2,7 @@ import React from 'react';
 import { Outlet } from 'react-router-dom';
 
 import { Container, Box, Typography } from '@mui/material';
-import Notifications from '../components/common/Notifications';
+import Notifications from '../common/Notifications';
 
 const AuthLayout: React.FC = () => {
 	return (

@@ -1,23 +1,17 @@
-/* Customize the scrollbar for WebKit browsers (Chrome, Safari) */
+/* Global styles for scrollbars */
 ::-webkit-scrollbar {
-  width: 12px; /* Width of the scrollbar */
+    width: 4px; /* Width of the vertical scrollbar */
+    height: 4px; /* Height of the horizontal scrollbar */
+  }
+  
+::-webkit-scrollbar-thumb {
+  background-color: #fff; /* Color of the scrollbar thumb */
+  border-radius: 4px; /* Roundness of the thumb */
+  background-clip: content-box; /* Prevent thumb overflow */
 }
+
 
 ::-webkit-scrollbar-track {
-  background: #f1f1f1; /* Background of the scrollbar track */
+  background-color: #121212; /* Track color */
 }
-
-::-webkit-scrollbar-thumb {
-  background: #888; /* Color of the scrollbar thumb */
-  border-radius: 10px; /* Rounded corners for the scrollbar thumb */
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #555; /* Color of the scrollbar thumb on hover */
-}
-
-/* Customize the scrollbar for Firefox */
-* {
-  scrollbar-width: thin; /* Width of the scrollbar */
-  scrollbar-color: #888 #f1f1f1; /* Color of the scrollbar thumb and track */
-}
+  

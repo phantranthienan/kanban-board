@@ -81,9 +81,9 @@ const BoardBody: React.FC<BoardBodyProps> = ({ boardId }) => {
 	);
 
 	// Log localTasks whenever it changes
-	useEffect(() => {
-		console.log('Updated localTasks:', localTasks);
-	}, [localTasks]);
+	// useEffect(() => {
+	// 	console.log('Updated localTasks:', localTasks);
+	// }, [localTasks]);
 
 	// Dispatch
 	const dispatch = useAppDispatch();
@@ -266,12 +266,12 @@ const BoardBody: React.FC<BoardBodyProps> = ({ boardId }) => {
 				);
 				newPosition = tasksInTargetSection.length - 1;
 			} else if (overData?.type === 'task' && overTask) {
-				console.log('overTask:', overTask);
+				// console.log('overTask:', overTask);
 				newPosition = overTask.position;
 			}
 
-			console.log('oldPosition:', oldPosition);
-			console.log('newPosition:', newPosition);
+			// console.log('oldPosition:', oldPosition);
+			// console.log('newPosition:', newPosition);
 
 			const isSameSection = sourceSection === targetSection;
 

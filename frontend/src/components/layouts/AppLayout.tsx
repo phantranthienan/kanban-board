@@ -2,8 +2,8 @@ import React from 'react';
 import { Outlet } from 'react-router-dom';
 
 import { Box } from '@mui/material';
-import SideBar from '../components/SideBar/SideBar';
-import Notifications from '../components/common/Notifications';
+import SideBar from '../SideBar/SideBar';
+import Notifications from '../common/Notifications';
 
 const AppLayout: React.FC = () => {
 	return (
@@ -13,6 +13,7 @@ const AppLayout: React.FC = () => {
 				sx={{
 					display: 'flex',
 					height: '100vh',
+					overflow: 'auto',
 				}}
 			>
 				<SideBar />
