@@ -24,18 +24,31 @@ type TaskItemProps = {
 };
 
 const TaskItem: React.FC<TaskItemProps> = ({ task }) => {
-	const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-	const [isModalOpen, setIsModalOpen] = useState(false);
-
-	const dispatch = useAppDispatch();
+	//Queries and mutations
 	const [deleteTask] = useDeleteTaskMutation();
 	const [updateTask] = useUpdateTaskMutation();
 
-	const { attributes, listeners, setNodeRef, transform, transition } =
-		useSortable({
-			id: task.id,
-			data: { section: task.section },
-		});
+	// Local state
+	const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+	const [isModalOpen, setIsModalOpen] = useState(false);
+	const dispatch = useAppDispatch();
+
+	// Drag and drop
+	const {
+		attributes,
+		listeners,
+		setNodeRef,
+		transform,
+		transition,
+		isDragging,
+	} = useSortable({
+		id: task.id,
+		data: {
+			type: 'task',
+			section: task.section,
+			task,
+		},
+	});
 
 	const style = {
 		transform: CSS.Transform.toString(transform),
@@ -94,6 +107,31 @@ const TaskItem: React.FC<TaskItemProps> = ({ task }) => {
 		}
 	};
 
+	if (isDragging) {
+		return (
+			<Box
+				ref={setNodeRef}
+				{...attributes}
+				{...listeners}
+				style={style}
+				sx={{
+					flexShrink: 0,
+					display: 'flex',
+					justifyContent: 'space-between',
+					alignItems: 'center',
+					height: '56px',
+					width: '100%',
+					px: 2,
+					py: 2,
+					backgroundColor: 'background.paper',
+					opacity: 0.5,
+					borderRadius: '4px',
+					cursor: 'pointer',
+				}}
+			></Box>
+		);
+	}
+
 	return (
 		<>
 			<Box
@@ -105,9 +143,10 @@ const TaskItem: React.FC<TaskItemProps> = ({ task }) => {
 					display: 'flex',
 					justifyContent: 'space-between',
 					alignItems: 'center',
+					height: '56px',
 					width: '100%',
 					px: 2,
-					py: 1,
+					py: 2,
 					backgroundColor: 'background.paper',
 					borderRadius: '4px',
 					cursor: 'pointer',
@@ -131,7 +170,7 @@ const TaskItem: React.FC<TaskItemProps> = ({ task }) => {
 					anchorEl={anchorEl}
 					open={Boolean(anchorEl)}
 					onClose={handleMenuClose}
-					sx={{ '& .MuiMenu-paper': { padding: 0 } }}
+					sx={{ '& .MuiList-padding': { padding: 0 } }}
 				>
 					<MenuItem onClick={handleShowDetails}>Show Details</MenuItem>
 					<MenuItem onClick={handleDeleteTask}>Delete</MenuItem>

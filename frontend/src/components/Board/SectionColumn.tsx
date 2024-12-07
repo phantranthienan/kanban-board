@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { useSortable } from '@dnd-kit/sortable';
+import { useSortable, SortableContext } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import debounce from 'lodash/debounce';
 
@@ -9,39 +9,35 @@ import {
 	useDeleteSectionMutation,
 	useUpdateSectionMutation,
 } from '../../redux/slices/api/sectionApiSlice';
-import {
-	useCreateTaskMutation,
-	useGetTasksOfSectionQuery,
-} from '../../redux/slices/api/taskApiSlice';
+import { useCreateTaskMutation } from '../../redux/slices/api/taskApiSlice';
 
 import { Box, Stack, Button, IconButton, InputBase } from '@mui/material';
 import TaskModal from './TaskModal';
 import TaskItem from './TaskItem';
-import Loading from '../common/Loading';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/AddCircleOutlineOutlined';
 
 import { TSection } from '../../types/sections';
 import { TaskInput } from '../../utils/zodSchemas';
 import { handleError } from '../../utils/errorHandler';
+import { TTask } from '../../types/tasks';
 
 type SectionColumnProps = {
 	section: TSection;
+	tasks: TTask[];
 };
 
-const SectionColumn: React.FC<SectionColumnProps> = ({ section }) => {
+const SectionColumn: React.FC<SectionColumnProps> = ({ section, tasks }) => {
 	// Queries and mutations
 	const [deleteSection] = useDeleteSectionMutation();
 	const [updateSection] = useUpdateSectionMutation();
 	const [createTask] = useCreateTaskMutation();
-	const { data: tasks, isLoading } = useGetTasksOfSectionQuery({
-		boardId: section.board,
-		sectionId: section.id,
-	});
 
 	// Local state
 	const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
 	const [title, setTitle] = useState<string>(section.title);
+	const taskIds = useMemo(() => tasks.map((task) => task.id) ?? [], [tasks]);
+
 	const dispatch = useAppDispatch();
 
 	// Drag and drop
@@ -160,11 +156,12 @@ const SectionColumn: React.FC<SectionColumnProps> = ({ section }) => {
 				alignItems="center"
 				justifyContent="space-between"
 				sx={{
-					height: '50px',
+					height: '64px',
 					width: '100%',
 					px: 2,
 					backgroundColor: 'background.default',
 					borderRadius: '12px 12px 0 0',
+					flexShrink: 0,
 				}}
 			>
 				<InputBase
@@ -183,17 +180,17 @@ const SectionColumn: React.FC<SectionColumnProps> = ({ section }) => {
 			</Stack>
 
 			{/* Section Body */}
-			{isLoading && <Loading fullHeight />}
-			{tasks && !isLoading && (
-				<Stack
-					spacing={1}
-					sx={{
-						flexGrow: 1,
-						width: '100%',
-						p: 1,
-						overflowY: 'auto',
-					}}
-				>
+
+			<Stack
+				spacing={1}
+				sx={{
+					flexGrow: 1,
+					width: '100%',
+					p: 1,
+					overflowY: 'auto',
+				}}
+			>
+				<SortableContext items={taskIds}>
 					{/* Tasks */}
 					{tasks.map((task) => (
 						<TaskItem key={task.id} task={task} />
@@ -204,9 +201,11 @@ const SectionColumn: React.FC<SectionColumnProps> = ({ section }) => {
 						sx={{
 							display: 'flex',
 							justifyContent: 'center',
+							height: '56px',
 							width: '100%',
 							border: '2px dashed #ccc',
 							borderRadius: '4px',
+							flexShrink: 0,
 						}}
 					>
 						<Button
@@ -215,13 +214,14 @@ const SectionColumn: React.FC<SectionColumnProps> = ({ section }) => {
 							sx={{
 								width: '100%',
 								color: 'white',
+								justifyContent: 'center',
 							}}
 						>
 							Add Task
 						</Button>
 					</Box>
-				</Stack>
-			)}
+				</SortableContext>
+			</Stack>
 			{/* Task Modal */}
 			<TaskModal
 				open={isModalOpen}

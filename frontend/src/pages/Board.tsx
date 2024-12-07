@@ -9,7 +9,6 @@ import {
 	useUpdateBoardMutation,
 	useDeleteBoardMutation,
 } from '../redux/slices/api/boardApiSlice';
-import { useGetSectionsQuery } from '../redux/slices/api/sectionApiSlice';
 
 import { Box, Divider } from '@mui/material';
 import Loading from '../components/common/Loading';
@@ -37,11 +36,6 @@ const Board: React.FC = () => {
 			setTitle(board.title);
 		}
 	}, [isBoardSuccess, board]);
-
-	// Handle Section data
-	const { data: sections, isLoading: isSectionsLoading } = useGetSectionsQuery(
-		boardId as string,
-	);
 
 	// Debounced function to update the board title
 	const debouncedUpdateTitle = useMemo(() => {
@@ -80,27 +74,20 @@ const Board: React.FC = () => {
 				height: '100%',
 			}}
 		>
-			{isBoardLoading ? (
-				<Loading fullHeight />
-			) : (
-				board && (
-					<BoardHeader
-						title={title}
-						icon={board.icon}
-						onTitleChange={handleTitleChange}
-						onEmojiSelect={handleEmojiSelect}
-						onDelete={handleDeleteBoard}
-					/>
-				)
+			{isBoardLoading && <Loading fullHeight />}
+			{board && (
+				<BoardHeader
+					title={title}
+					icon={board.icon}
+					onTitleChange={handleTitleChange}
+					onEmojiSelect={handleEmojiSelect}
+					onDelete={handleDeleteBoard}
+				/>
 			)}
 
 			<Divider />
 
-			{isSectionsLoading ? (
-				<Loading />
-			) : sections !== undefined ? (
-				<BoardBody sections={sections} boardId={boardId as string} />
-			) : null}
+			<BoardBody boardId={boardId as string} />
 		</Box>
 	);
 };
