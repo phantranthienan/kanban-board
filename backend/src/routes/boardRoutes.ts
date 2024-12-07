@@ -1,6 +1,7 @@
 import express from 'express';
 
 import * as boardController from '../controllers/boardController';
+import { getTasksByBoardId, moveTask } from '../controllers/taskController';
 import  sectionRoutes from './sectionRoutes';
 import { authMiddleware } from '../middleware/authMiddleware';
  
@@ -20,6 +21,12 @@ router.put('/:id', authMiddleware, boardController.updateBoard);
 
 /** DELETE /boards/:id - Delete a specific board by its ID */
 router.delete('/:id', authMiddleware, boardController.deleteBoard);
+
+/** GET /boards/:boardId/tasks - Get all tasks for a board */
+router.get('/:boardId/tasks', authMiddleware, getTasksByBoardId);
+
+/** PUT /boards/:boardId/tasks/:taskId/move - Move a task to a different board */
+router.put('/:boardId/tasks/:taskId/move', authMiddleware, moveTask);
 
 /** Nested routes for sections */
 router.use('/:boardId/sections', sectionRoutes);

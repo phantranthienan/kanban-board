@@ -48,14 +48,34 @@ export const getSectionsOfBoard = async (boardId: string): Promise<SectionDocume
  * @param {string} sectionId - The ID of the section to delete.
  * @return {Promise<SectionDocument>} The deleted section document.
  */
-export const deleteSection = async (sectionId: string): Promise<SectionDocument> => {
-    const deletedSection = await deleteSectionById(sectionId);
-    if (!deletedSection) {
+/**
+ * Delete a section and reorder remaining sections.
+ * @param {string} boardId - The ID of the board containing the section.
+ * @param {string} sectionId - The ID of the section to delete.
+ * @return {Promise<void>}
+ */
+export const deleteAndReorderSections = async (boardId: string, sectionId: string): Promise<void> => {
+    // Get the section to delete
+    const sectionToDelete = await getSectionById(sectionId);
+
+    if (!sectionToDelete) {
         throw new CustomError('Section not found', 404);
     }
-    return deletedSection;
-};
 
+    await deleteSectionById(sectionId);
+
+    // Fetch all sections in the same board that come after the deleted section
+    const sectionsToUpdate = await getSectionsByBoardId(boardId).then((sections) =>
+        sections.filter((section) => section.position > sectionToDelete.position)
+    );
+
+    // Update the position of each section
+    await Promise.all(
+        sectionsToUpdate.map((section) =>
+            updateSectionById(section.id, { position: section.position - 1 })
+        )
+    );
+};
 
 /**
  * Update an existing section by ID.

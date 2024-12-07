@@ -1,6 +1,10 @@
 import { CustomError } from "../errors/CustomError";
-import { TaskDocument, TTask, getTaskById, createTask, updateTaskById, deleteTaskById, getTasksBySectionId } from "../models/taskModel";
-import { getNumberOfTasksInSection } from "../models/sectionModel";
+import { 
+    TaskDocument, TTask, getTaskById, createTask, updateTaskById, deleteTaskById, 
+    getTasksBySectionId, getTasksByBoardId, adjustPositionsInSection
+} from "../models/taskModel";
+import { getNumberOfTasksInSection, removeTaskFromSection, addTaskToSection } from "../models/sectionModel";
+import { Types } from "mongoose";
 
 /**
  * Creates a new task in a section.
@@ -38,8 +42,22 @@ export const getTask = async (taskId: string): Promise<TaskDocument> => {
     return task;
 };
 
+/**
+ * Retrieves all tasks for a section.
+ * @param {string} sectionId - The ID of the section to retrieve tasks for.
+ * @return {Promise<TaskDocument[]>} The array of task documents for the section.
+ */
 export const getTasksOfASection = async (sectionId: string): Promise<TaskDocument[]> => {
     return await getTasksBySectionId(sectionId);
+}
+
+/**
+ * Retrieves all tasks for a board.
+ * @param {string} boardId - The ID of the board to retrieve tasks for.
+ * @return {Promise<TaskDocument[]>} The array of task documents for the board.
+ */
+export const getTasksOfABoard = async (boardId: string): Promise<TaskDocument[]> => {
+    return await getTasksByBoardId(boardId);
 }
 
 /**
@@ -72,4 +90,41 @@ export const updateTask = async (taskId: string, taskData: Partial<TTask>): Prom
         throw new CustomError('Task not found', 404);
     }
     return updatedTask;
+};
+
+/**
+ * Moves a task to a new section and updates its position.
+ * @param {string} taskId - The ID of the task to move.
+ * @param {string} sourceSectionId - The ID of the new section to move the task to.
+ * @param {string} targetSectionId - The ID of the target section to move the task to.
+ * @param {number} targetPosition - The new position of the task in the target section.
+ * @
+ */
+export const moveAndReorderTask = async (
+    taskId: string,
+    sourceSectionId: string,
+    targetSectionId: string,
+    targetPosition: number,
+): Promise<void> => {
+    const task = await getTaskById(taskId);
+    if (!task) {
+        throw new CustomError('Task not found', 404);
+    }
+    const sourcePosition = task.position;
+    if (sourceSectionId !== targetSectionId) {
+        await adjustPositionsInSection(sourceSectionId, sourcePosition + 1, null, -1);
+        await removeTaskFromSection(sourceSectionId, taskId);
+
+        await adjustPositionsInSection(targetSectionId, targetPosition, null, 1);
+        await addTaskToSection(targetSectionId, taskId);
+
+        await updateTask(taskId, { section: new Types.ObjectId(targetSectionId), position: targetPosition });
+    } else {
+        if (sourcePosition < targetPosition) {
+            await adjustPositionsInSection(sourceSectionId, sourcePosition + 1, targetPosition, -1);
+        } else if (sourcePosition > targetPosition) {
+            await adjustPositionsInSection(sourceSectionId, targetPosition, sourcePosition - 1, 1);
+        }
+        await updateTask(taskId, { position: targetPosition });
+    }
 };

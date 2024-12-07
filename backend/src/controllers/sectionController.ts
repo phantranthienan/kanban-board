@@ -58,9 +58,8 @@ export const updateSection = async (req: Request, res: Response) => {
  * @param {Response} res - Express response object.
  */
 export const deleteSection = async (req: Request, res: Response) => {
-    const { sectionId } = req.params;
-    console.log(req.params);
-    await sectionService.deleteSection(sectionId);
+    const { boardId, sectionId } = req.params;
+    await sectionService.deleteAndReorderSections(boardId, sectionId);
     res.status(204).send();
 };
 
@@ -71,13 +70,8 @@ export const deleteSection = async (req: Request, res: Response) => {
  * @param {Response} res - Express response object.
  */
 export const reorderSections = async (req: Request, res: Response) => {
-    console.log(req.body);
     const { boardId } = req.params;
-    const { sections } = req.body; // Array of sections with updated positions
-
-    if (!sections || !Array.isArray(sections)) {
-        throw new CustomError('Invalid request body', 400);
-    }
+    const { sections } = req.body; 
     await sectionService.updateSectionPositions(boardId, sections);
     res.status(200).send();
 };

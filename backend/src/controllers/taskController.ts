@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { taskSchema } from "../utils/zodSchemas";
 import * as taskService from "../services/taskService";
+import { log } from "console";
 
 /**
  * Create a new task in a specific section.
@@ -42,6 +43,18 @@ export const getTasksBySectionId = async (req: Request, res: Response) => {
 }
 
 /**
+ * Get all tasks for a board.
+ * @route GET /boards/:boardId/tasks
+ * @param {Request} req - Express request object.
+ * @param {Response} res - Express response object.
+ */
+export const getTasksByBoardId = async (req: Request, res: Response) => {
+    const { boardId } = req.params; 
+    const tasks = await taskService.getTasksOfABoard(boardId);
+    res.status(200).json(tasks);
+}
+
+/**
  * Update a task by its ID.
  * @route PUT /boards/:boardId/sections/:sectionId/tasks/:taskId
  * @param {Request} req - Express request object.
@@ -63,4 +76,17 @@ export const deleteTask = async (req: Request, res: Response) => {
     const { taskId } = req.params;
     await taskService.deleteTask(taskId); 
     res.status(204).send(); 
+};
+
+/**
+ * Move and reorder a task within a board.
+ * @route PUT /boards/:boardId/sections/:sectionId/tasks/:taskId/move
+ * @param {Request} req - Express request object.
+ * @param {Response} res - Express response object.
+ */
+export const moveTask = async (req: Request, res: Response) => {
+    const { taskId } = req.params;
+    const { fromSection, toSection, position} = req.body;
+    await taskService.moveAndReorderTask(taskId, fromSection, toSection, position);
+    res.status(204).send();
 };

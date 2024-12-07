@@ -84,9 +84,17 @@ export const getTaskById = async (id: string): Promise<TaskDocument | null> => {
  * @param {string} sectionId - The ID of the section to find tasks for
  * @return {Promise<TaskDocument[]>} The array of task documents for the section
  */
-
 export const getTasksBySectionId = async (sectionId: string): Promise<TaskDocument[]> => {
     return await Task.find({ section: sectionId });
+}
+
+/**
+ * Get all tasks for a board
+ * @param {string} boardId - The ID of the board to find tasks for
+ * @return {Promise<TaskDocument[]>} The array of task documents for the board
+ */
+export const getTasksByBoardId = async (boardId: string): Promise<TaskDocument[]> => {
+    return await Task.find({ board: boardId });
 }
 
 /**
@@ -109,10 +117,24 @@ export const deleteTaskById = async (id: string): Promise<TaskDocument | null> =
 };
 
 /**
- * Delete all tasks in a section
- * @param {string} sectionId - The ID of the section to delete tasks from
+ * Adjust the position of tasks in a section
+ * @param {string} sectionId - The ID of the section to adjust tasks in
+ * @param {number} startPosition - The position to start adjusting from
+ * @param {number | null} endPosition - The position to end adjusting at
+ * @param {number} increment - The amount to increment the positions by
  * @return {Promise<void>}
  */
-export const deleteTasksBySectionId = async (sectionId: string): Promise<void> => {
-    await Task.deleteMany({ section: sectionId });
+export const adjustPositionsInSection = async (
+    sectionId: string,
+    startPosition: number,
+    endPosition: number | null,
+    increment: number
+): Promise<void> => {
+    const condition = {
+        section: sectionId,
+        position: endPosition !== null
+            ? { $gte: startPosition, $lte: endPosition }
+            : { $gte: startPosition },
+    };
+    await Task.updateMany(condition, { $inc: { position: increment } });
 };

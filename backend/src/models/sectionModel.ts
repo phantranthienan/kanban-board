@@ -105,6 +105,25 @@ export const getNumberOfTasksInSection = async (id: string): Promise<number> => 
     return section?.tasks.length || 0;
 }
 
+/**
+ * Remove a task from a section
+ * @param {string} sectionId - The ID of the section to remove the task from
+ * @param {string} taskId - The ID of the task to remove
+ * @return {Promise<void>}
+ */
+export const removeTaskFromSection = async (sectionId: string, taskId: string): Promise<void> => {
+    await Section.findByIdAndUpdate(sectionId, { $pull: { tasks: taskId } });
+}
+
+/**
+ * Add a task to a section
+ * @param {string} sectionId - The ID of the section to add the task to
+ * @param {string} taskId - The ID of the task to add
+ * @return {Promise<void>}
+ */
+export const addTaskToSection = async (sectionId: string, taskId: string): Promise<void> => {
+    await Section.findByIdAndUpdate(sectionId, { $push: { tasks: taskId } });
+}
 
 /**
  * Bulk update sections' positions

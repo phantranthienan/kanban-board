@@ -11,7 +11,6 @@ router.post('/', authMiddleware, createSection);
 /** GET /boards/:boardId/sections - Get all sections for a board */
 router.get('/', authMiddleware, getSectionsByBoardId);
 
-
 /** GET /boards/:boardId/sections/:sectionId - Get a specific section by its ID */
 router.get('/:sectionId', authMiddleware, getSectionById);
 
@@ -23,7 +22,6 @@ router.put('/:sectionId', authMiddleware, updateSection);
 
 /** DELETE /boards/:boardId/sections/:sectionId - Delete a specific section by its ID */
 router.delete('/:sectionId', authMiddleware, deleteSection);
-
 
 /** Nested routes for tasks */
 router.use('/:sectionId/tasks', taskRoutes);
