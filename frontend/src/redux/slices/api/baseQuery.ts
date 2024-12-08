@@ -2,7 +2,7 @@ import { fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import { tokenManager } from '../../../utils/tokenManager';
 
 export const baseQuery = fetchBaseQuery({
-	baseUrl: 'http://localhost:3001/api/',
+	baseUrl: 'https://kanban-board-backend-zr7m.onrender.com',
 	prepareHeaders: (headers, { endpoint }) => {
 		if (endpoint !== 'login' && endpoint !== 'register') {
 			const token = tokenManager.getToken();
