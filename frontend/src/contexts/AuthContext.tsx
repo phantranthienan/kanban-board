@@ -35,7 +35,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
 	);
 	const navigate = useNavigate();
 
-	const { data: userInfo, error } = useGetUserInfoQuery(undefined, {
+	const {
+		data: userInfo,
+		error,
+		refetch: refetchUser,
+	} = useGetUserInfoQuery(undefined, {
 		skip: !isAuthenticated,
 		refetchOnReconnect: true,
 	});
@@ -49,17 +53,16 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
 			setUser(userInfo);
 			setIsAuthenticated(true);
 		}
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [userInfo, error]);
+	}, [userInfo, error]); // eslint-disable-line react-hooks/exhaustive-deps
 
-	// Function to handle login
 	const login = async (credentials: LoginInput) => {
 		const { token } = await loginMutation(credentials).unwrap();
 		tokenManager.setToken(token);
 		setIsAuthenticated(true);
+		// Immediately refetch user info so `user` is updated ASAP
+		await refetchUser();
 	};
 
-	// Function to handle logout
 	const logout = () => {
 		tokenManager.clearToken();
 		setUser(null);
@@ -74,8 +77,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
 			login,
 			logout,
 		}),
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-		[isAuthenticated, user],
+		[isAuthenticated, user], // eslint-disable-line react-hooks/exhaustive-deps
 	);
 
 	return (

@@ -52,7 +52,7 @@ const BoardLink: React.FC<BoardLinkProps> = ({
 					{icon} {title}
 				</ListItemText>
 				<IconButton onClick={(e) => onFavoriteClick(e)}>
-					{favorite ? <StarIcon /> : <StarOutlineIcon />}
+					{favorite ? <StarIcon color="warning" /> : <StarOutlineIcon />}
 				</IconButton>
 			</Box>
 		</ListItemButton>
