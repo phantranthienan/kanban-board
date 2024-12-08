@@ -30,7 +30,7 @@ export const taskApi = createApi({
 		>({
 			query: ({ boardId, sectionId }) =>
 				`boards/${boardId}/sections/${sectionId}/tasks`, // Endpoint for fetching tasks
-			providesTags: (result, error, { sectionId }) =>
+			providesTags: (result, _error, { sectionId }) =>
 				result
 					? [
 							...result.map(
@@ -48,7 +48,7 @@ export const taskApi = createApi({
 		>({
 			query: ({ boardId, sectionId, taskId }) =>
 				`boards/${boardId}/sections/${sectionId}/tasks/${taskId}`, // Endpoint for fetching a specific task
-			providesTags: (result, error, { taskId }) => [
+			providesTags: (_result, _error, { taskId }) => [
 				{ type: 'Task', id: taskId },
 			],
 		}),
@@ -60,7 +60,7 @@ export const taskApi = createApi({
 				method: 'POST',
 				body: newTask,
 			}),
-			invalidatesTags: (result, error, { section }) => [
+			invalidatesTags: (_result, _error, { section }) => [
 				{ type: 'Task', id: `SECTION_${section}` },
 				{ type: 'Task', id: 'BOARD' }, // Invalidate board-level cache
 			],
@@ -73,7 +73,7 @@ export const taskApi = createApi({
 				method: 'PUT',
 				body: updatedTask,
 			}),
-			invalidatesTags: (result, error, { id, section }) => [
+			invalidatesTags: (_result, _error, { id, section }) => [
 				{ type: 'Task', id },
 				{ type: 'Task', id: `SECTION_${section}` },
 				{ type: 'Task', id: 'BOARD' }, // Invalidate board-level cache
@@ -89,7 +89,7 @@ export const taskApi = createApi({
 				url: `boards/${boardId}/sections/${sectionId}/tasks/${taskId}`, // Endpoint for deleting a task
 				method: 'DELETE',
 			}),
-			invalidatesTags: (result, error, { sectionId, taskId }) => [
+			invalidatesTags: (_result, _error, { sectionId, taskId }) => [
 				{ type: 'Task', id: taskId }, // Invalidate the deleted task
 				{ type: 'Task', id: `SECTION_${sectionId}` }, // Invalidate section-level cache
 				{ type: 'Task', id: 'BOARD' }, // Invalidate board-level cache
@@ -112,7 +112,7 @@ export const taskApi = createApi({
 				method: 'PUT',
 				body: { fromSection, toSection, position },
 			}),
-			invalidatesTags: (result, error, { fromSection, toSection }) => [
+			invalidatesTags: (_result, _error, { fromSection, toSection }) => [
 				{ type: 'Task', id: `SECTION_${fromSection}` }, // Invalidate source section cache
 				{ type: 'Task', id: `SECTION_${toSection}` }, // Invalidate target section cache
 				{ type: 'Task', id: 'BOARD' }, // Invalidate board-level cache

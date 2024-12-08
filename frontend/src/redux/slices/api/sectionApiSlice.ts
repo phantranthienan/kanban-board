@@ -29,7 +29,7 @@ export const sectionApi = createApi({
 		>({
 			query: ({ boardId, sectionId }) =>
 				`boards/${boardId}/sections/${sectionId}`, // Include both board and section IDs
-			providesTags: (result, error, { sectionId }) => [
+			providesTags: (_result, _error, { sectionId }) => [
 				{ type: 'Section', id: sectionId },
 			],
 		}),
@@ -48,7 +48,7 @@ export const sectionApi = createApi({
 				method: 'PUT',
 				body: updatedSection,
 			}),
-			invalidatesTags: (result, error, { id }) => [{ type: 'Section', id }], // Invalidate the specific section
+			invalidatesTags: (_result, _error, { id }) => [{ type: 'Section', id }], // Invalidate the specific section
 		}),
 
 		// Delete an existing section
@@ -60,7 +60,7 @@ export const sectionApi = createApi({
 				url: `boards/${boardId}/sections/${sectionId}`, // Endpoint for deleting a section
 				method: 'DELETE',
 			}),
-			invalidatesTags: (result, error, { sectionId }) => [
+			invalidatesTags: (_result, _error, { sectionId }) => [
 				{ type: 'Section', id: sectionId } as SectionTag,
 				{ type: 'Section', id: 'LIST' } as SectionTag, // Invalidate the list and the specific section
 			],
