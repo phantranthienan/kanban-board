@@ -58,7 +58,7 @@ const SectionColumn: React.FC<SectionColumnProps> = ({ section, tasks }) => {
 	});
 
 	const style = {
-		transform: CSS.Transform.toString(transform),
+		transform: transform ? `translateX(${transform.x}px)` : undefined,
 		cursor: 'grab',
 		transition,
 	};

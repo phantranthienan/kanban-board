@@ -9,9 +9,12 @@ import {
 	useSensor,
 	useSensors,
 	PointerSensor,
-	closestCenter,
 } from '@dnd-kit/core';
-import { SortableContext, arrayMove } from '@dnd-kit/sortable';
+import {
+	SortableContext,
+	arrayMove,
+	horizontalListSortingStrategy,
+} from '@dnd-kit/sortable';
 
 import { useAppDispatch } from '../../hooks/storeHooks';
 import { showNotification } from '../../redux/slices/notificationSlice';
@@ -109,8 +112,22 @@ const BoardBody: React.FC<BoardBodyProps> = ({ boardId }) => {
 		}
 	};
 
+	const bulkUpdateSections = async (updatedSections: TSection[]) => {
+		try {
+			const sectionsToUpdate = updatedSections.map((section, index) => ({
+				id: section.id,
+				position: index,
+			}));
+			await reorderSections({ boardId, sections: sectionsToUpdate }).unwrap();
+		} catch (error) {
+			handleError(error);
+			setLocalSections(sections);
+		}
+	};
+
 	// Drag and drop handlers
 	const handleDragStart = (event: DragStartEvent) => {
+		console.log(localSections);
 		const dragItem = event.active.data.current;
 		if (!dragItem) return;
 
@@ -125,11 +142,14 @@ const BoardBody: React.FC<BoardBodyProps> = ({ boardId }) => {
 	};
 
 	const handleDragOver = (event: DragOverEvent) => {
+		console.log(localSections);
 		const { active, over } = event;
 		if (!over || !active.data.current) return;
 
 		const activeData = active.data.current;
 		const overData = over.data.current;
+
+		if (activeData.type === 'section') return;
 
 		if (activeData.type === 'task' && overData?.type === 'task') {
 			const activeTask = activeData.task;
@@ -219,34 +239,41 @@ const BoardBody: React.FC<BoardBodyProps> = ({ boardId }) => {
 
 		// Reordering sections
 		if (activeData?.type === 'section' && overData?.type === 'section') {
-			const activeSectionId = active.id;
-			const overSectionId = over.id;
+			setLocalSections((prevSections) => {
+				const oldIndex = prevSections!.findIndex(
+					(section) => section.id === activeData.section.id,
+				);
+				const newIndex = prevSections!.findIndex(
+					(section) => section.id === overData.section.id,
+				);
+				const reorderedSections = arrayMove(prevSections!, oldIndex, newIndex);
+				bulkUpdateSections(reorderedSections);
 
-			if (activeSectionId === overSectionId) return;
+				return reorderedSections;
+			});
+			// // Find the old and new index of the section
+			// const oldIndex = localSections!.findIndex(
+			// 	(section) => section.id === activeSectionId,
+			// );
+			// const newIndex = localSections!.findIndex(
+			// 	(section) => section.id === overSectionId,
+			// );
 
-			// Find the old and new index of the section
-			const oldIndex = localSections!.findIndex(
-				(section) => section.id === activeSectionId,
-			);
-			const newIndex = localSections!.findIndex(
-				(section) => section.id === overSectionId,
-			);
+			// const reorderedSections = arrayMove(localSections!, oldIndex, newIndex);
+			// setLocalSections(reorderedSections);
 
-			const reorderedSections = arrayMove(localSections!, oldIndex, newIndex);
-			setLocalSections(reorderedSections);
+			// const updatedSections = reorderedSections.map((section, index) => ({
+			// 	id: section.id,
+			// 	position: index,
+			// }));
 
-			const updatedSections = reorderedSections.map((section, index) => ({
-				id: section.id,
-				position: index,
-			}));
-
-			try {
-				await reorderSections({ boardId, sections: updatedSections }).unwrap();
-			} catch (error) {
-				handleError(error);
-				setLocalSections(sections);
-			}
-			return;
+			// try {
+			// 	await reorderSections({ boardId, sections: updatedSections }).unwrap();
+			// } catch (error) {
+			// 	handleError(error);
+			// 	setLocalSections(sections);
+			// }
+			// return;
 		}
 
 		// Handle task drop
@@ -359,7 +386,6 @@ const BoardBody: React.FC<BoardBodyProps> = ({ boardId }) => {
 			onDragStart={handleDragStart}
 			onDragEnd={handleDragEnd}
 			onDragOver={handleDragOver}
-			collisionDetection={closestCenter}
 		>
 			<Box
 				sx={{
@@ -373,7 +399,10 @@ const BoardBody: React.FC<BoardBodyProps> = ({ boardId }) => {
 			>
 				{(sectionsLoading || tasksLoading) && <Loading />}
 				{localSections && localTasks && (
-					<SortableContext items={sectionIds}>
+					<SortableContext
+						items={sectionIds}
+						strategy={horizontalListSortingStrategy}
+					>
 						{localSections.map((section) => (
 							<SectionColumn
 								key={section.id}
