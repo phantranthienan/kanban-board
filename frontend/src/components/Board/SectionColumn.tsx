@@ -1,6 +1,5 @@
 import React, { useState, useMemo } from 'react';
 import { useSortable, SortableContext } from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
 import debounce from 'lodash/debounce';
 
 import { useAppDispatch } from '../../hooks/storeHooks';

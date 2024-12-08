@@ -201,7 +201,7 @@ const BoardBody: React.FC<BoardBodyProps> = ({ boardId }) => {
 							task.id === activeTask.id
 								? {
 										...task,
-										section: overSectionId,
+										section: overSectionId as string,
 										position: numberOfTasksInOverSection!,
 									}
 								: task,
@@ -251,29 +251,6 @@ const BoardBody: React.FC<BoardBodyProps> = ({ boardId }) => {
 
 				return reorderedSections;
 			});
-			// // Find the old and new index of the section
-			// const oldIndex = localSections!.findIndex(
-			// 	(section) => section.id === activeSectionId,
-			// );
-			// const newIndex = localSections!.findIndex(
-			// 	(section) => section.id === overSectionId,
-			// );
-
-			// const reorderedSections = arrayMove(localSections!, oldIndex, newIndex);
-			// setLocalSections(reorderedSections);
-
-			// const updatedSections = reorderedSections.map((section, index) => ({
-			// 	id: section.id,
-			// 	position: index,
-			// }));
-
-			// try {
-			// 	await reorderSections({ boardId, sections: updatedSections }).unwrap();
-			// } catch (error) {
-			// 	handleError(error);
-			// 	setLocalSections(sections);
-			// }
-			// return;
 		}
 
 		// Handle task drop
