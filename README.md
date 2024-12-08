@@ -15,10 +15,10 @@ The backend is a Node.js application using Express to manage API routes and serv
 - **`config/`**: Contains all configuration-related files like database connections and environment variables.
 - **`controllers/`**: Houses the controller logic for handling API routes.
 - **`errors/`**: Includes custom error classes and error-handling utilities.
-- **`middleware/`**: Contains Express middleware for tasks like authentication and logging.
+- **`middleware/`**: Contains Express middleware for tasks like authentication.
 - **`models/`**: Defines database structure using Mongoose schemas and models.
 - **`routes/`**: API route definitions linking endpoints to their controllers.
-- **`services/`**: Houses the business logic and reusable service functions.
+- **`services/`**: Houses the logic functions to handle incoming data from requests.
 - **`utils/`**: Utility functions and helpers for common tasks.
 - **`app.ts`**: Configures the Express application, adding middleware and routes.
 - **`index.ts`**: The entry point of the backend server, responsible for starting the application.
@@ -28,18 +28,16 @@ The frontend is a React application built with TypeScript and styled using Mater
 
 #### **Details**
 - **`assets/`**: Contains static files such as images and fonts used in the application.
-- **`components/`**: Houses reusable React components like buttons, modals, and form elements.
-- **`contexts/`**: Contains React Contexts for managing global state, such as authentication context.
-- **`hooks/`**: Custom React hooks for reusable logic (e.g., API calls, event listeners).
-- **`pages/`**: Contains full-page components like Login, Dashboard, and other main views.
-- **`redux/`**: Manages application state with Redux Toolkit (e.g., slices, store).
-- **`themes/`**: Stores Material-UI theme configurations for consistent styling across the app.
-- **`types/`**: Includes TypeScript type definitions for strong typing in the app.
-- **`utils/`**: Helper functions for tasks such as API requests, validations, etc.
+- **`components/`**: Houses reusable React components.
+- **`contexts/`**: Contains React Contexts for managing global state.
+- **`hooks/`**: Custom React hooks for reusable logic.
+- **`pages/`**: Contains page components.
+- **`redux/`**: Manages application state with Redux Toolkit.
+- **`themes/`**: Stores Material-UI theme configurations.
+- **`types/`**: Includes TypeScript type definitions.
+- **`utils/`**: Helper functions.
 - **`App.tsx`**: Main React application component containing routing logic.
-- **`main.tsx`**: The entry point for the React application, rendering the app into the DOM.
-- **`vite-env.d.ts`**: Vite-specific environment type definitions.
-
+- **`main.tsx`**: The entry point for the React application.
 
 ---
 
