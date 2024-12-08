@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 
 import { showNotification } from '../redux/slices/notificationSlice';
@@ -20,7 +20,7 @@ const Login: React.FC = () => {
 	const navigate = useNavigate();
 	const handleError = useErrorHandler();
 
-	const { login } = useAuth();
+	const { login, isAuthenticated, user } = useAuth();
 
 	const {
 		register,
@@ -38,16 +38,20 @@ const Login: React.FC = () => {
 		try {
 			await login(data);
 			dispatch(
-				showNotification({
-					message: 'Login successful',
-					type: 'success',
-				}),
+				showNotification({ message: 'Login successful', type: 'success' }),
 			);
-			navigate('/');
+			// Don't navigate yet, wait for user to be fetched and set
 		} catch (error: unknown) {
 			handleError(error);
 		}
 	};
+
+	useEffect(() => {
+		// Once isAuthenticated and user are available, navigate
+		if (isAuthenticated && user) {
+			navigate('/', { replace: true });
+		}
+	}, [isAuthenticated, user, navigate]);
 
 	return (
 		<Stack

@@ -35,11 +35,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
 	);
 	const navigate = useNavigate();
 
-	const {
-		data: userInfo,
-		error,
-		refetch: refetchUser,
-	} = useGetUserInfoQuery(undefined, {
+	// The query automatically runs if isAuthenticated = true
+	const { data: userInfo, error } = useGetUserInfoQuery(undefined, {
 		skip: !isAuthenticated,
 		refetchOnReconnect: true,
 	});
@@ -47,9 +44,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
 	const [loginMutation] = useLoginMutation();
 
 	useEffect(() => {
+		// If we get a 401 error, log out
 		if ((error as FetchBaseQueryError)?.status === 401) {
 			logout();
 		} else if (userInfo) {
+			// Once userInfo is fetched successfully, set user
 			setUser(userInfo);
 			setIsAuthenticated(true);
 		}
@@ -58,9 +57,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
 	const login = async (credentials: LoginInput) => {
 		const { token } = await loginMutation(credentials).unwrap();
 		tokenManager.setToken(token);
+		// Setting this to true triggers the query to run (no need to refetch manually)
 		setIsAuthenticated(true);
-		// Immediately refetch user info so `user` is updated ASAP
-		await refetchUser();
 	};
 
 	const logout = () => {
@@ -77,7 +75,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
 			login,
 			logout,
 		}),
-		[isAuthenticated, user], // eslint-disable-line react-hooks/exhaustive-deps
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+		[isAuthenticated, user],
 	);
 
 	return (
