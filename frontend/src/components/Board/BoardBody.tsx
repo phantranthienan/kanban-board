@@ -79,14 +79,9 @@ const BoardBody: React.FC<BoardBodyProps> = ({ boardId }) => {
 	}, [tasks]);
 
 	const sectionIds = useMemo(
-		() => sections?.map((section) => section.id) ?? [],
-		[sections],
+		() => localSections?.map((section) => section.id) ?? [],
+		[localSections],
 	);
-
-	// Log localTasks whenever it changes
-	// useEffect(() => {
-	// 	console.log('Updated localTasks:', localTasks);
-	// }, [localTasks]);
 
 	// Dispatch
 	const dispatch = useAppDispatch();
@@ -127,7 +122,6 @@ const BoardBody: React.FC<BoardBodyProps> = ({ boardId }) => {
 
 	// Drag and drop handlers
 	const handleDragStart = (event: DragStartEvent) => {
-		console.log(localSections);
 		const dragItem = event.active.data.current;
 		if (!dragItem) return;
 
@@ -142,7 +136,6 @@ const BoardBody: React.FC<BoardBodyProps> = ({ boardId }) => {
 	};
 
 	const handleDragOver = (event: DragOverEvent) => {
-		console.log(localSections);
 		const { active, over } = event;
 		if (!over || !active.data.current) return;
 
@@ -270,12 +263,8 @@ const BoardBody: React.FC<BoardBodyProps> = ({ boardId }) => {
 				);
 				newPosition = tasksInTargetSection.length - 1;
 			} else if (overData?.type === 'task' && overTask) {
-				// console.log('overTask:', overTask);
 				newPosition = overTask.position;
 			}
-
-			// console.log('oldPosition:', oldPosition);
-			// console.log('newPosition:', newPosition);
 
 			const isSameSection = sourceSection === targetSection;
 
