@@ -115,7 +115,7 @@ export const taskApi = createApi({
 			invalidatesTags: (result, error, { fromSection, toSection }) => [
 				{ type: 'Task', id: `SECTION_${fromSection}` }, // Invalidate source section cache
 				{ type: 'Task', id: `SECTION_${toSection}` }, // Invalidate target section cache
-				// { type: 'Task', id: 'BOARD' }, // Invalidate board-level cache
+				{ type: 'Task', id: 'BOARD' }, // Invalidate board-level cache
 			],
 		}),
 	}),

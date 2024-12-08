@@ -75,7 +75,7 @@ export const sectionApi = createApi({
 				method: 'PUT',
 				body: { sections }, // Send the reordered sections as the body
 			}),
-			invalidatesTags: [], // Invalidate the list of sections to trigger a re-fetch
+			invalidatesTags: [{ type: 'Section', id: 'LIST' }], // Invalidate the list of sections to trigger a re-fetch
 		}),
 	}),
 });

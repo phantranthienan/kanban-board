@@ -42,16 +42,18 @@ type BoardBodyProps = {
 };
 
 const BoardBody: React.FC<BoardBodyProps> = ({ boardId }) => {
-	// Queries and mutations
+	// Queries
 	const { data: sections, isLoading: sectionsLoading } =
 		useGetSectionsQuery(boardId);
 	const { data: tasks, isLoading: tasksLoading } =
 		useGetTasksOfBoardQuery(boardId);
+
+	// Mutations
 	const [createSection, { isLoading: isCreating }] = useCreateSectionMutation();
 	const [reorderSections] = useReorderSectionsMutation();
 	const [moveTask] = useMoveTaskMutation();
 
-	// Local state to handle reordering
+	// Local States
 	const [activeSection, setActiveSection] = useState<TSection | null>(null);
 	const [activeTask, setActiveTask] = useState<TTask | null>(null);
 
@@ -60,6 +62,7 @@ const BoardBody: React.FC<BoardBodyProps> = ({ boardId }) => {
 	);
 	const [localTasks, setLocalTasks] = useState<TTask[] | undefined>(tasks);
 
+	// Store original info for task revert if needed
 	const [activeTaskOriginSection, setActiveTaskOriginSection] = useState<
 		string | null
 	>(null);
@@ -67,6 +70,14 @@ const BoardBody: React.FC<BoardBodyProps> = ({ boardId }) => {
 		number | null
 	>(null);
 
+	const dispatch = useAppDispatch();
+	const handleError = useErrorHandler();
+
+	const sensors = useSensors(
+		useSensor(PointerSensor, { activationConstraint: { distance: 1 } }),
+	);
+
+	// On initial load or updates, sort tasks once and store
 	useEffect(() => {
 		setLocalSections(sections);
 	}, [sections]);
@@ -83,19 +94,6 @@ const BoardBody: React.FC<BoardBodyProps> = ({ boardId }) => {
 		[localSections],
 	);
 
-	// Dispatch
-	const dispatch = useAppDispatch();
-	const handleError = useErrorHandler();
-
-	const sensors = useSensors(
-		useSensor(PointerSensor, {
-			activationConstraint: {
-				distance: 1,
-			},
-		}),
-	);
-
-	// Handle creating a new section
 	const handleCreateSection = async () => {
 		try {
 			await createSection(boardId).unwrap();
@@ -107,6 +105,7 @@ const BoardBody: React.FC<BoardBodyProps> = ({ boardId }) => {
 		}
 	};
 
+	// Update sections order in backend
 	const bulkUpdateSections = async (updatedSections: TSection[]) => {
 		try {
 			const sectionsToUpdate = updatedSections.map((section, index) => ({
@@ -120,7 +119,7 @@ const BoardBody: React.FC<BoardBodyProps> = ({ boardId }) => {
 		}
 	};
 
-	// Drag and drop handlers
+	// DRAG EVENTS
 	const handleDragStart = (event: DragStartEvent) => {
 		const dragItem = event.active.data.current;
 		if (!dragItem) return;
@@ -144,78 +143,72 @@ const BoardBody: React.FC<BoardBodyProps> = ({ boardId }) => {
 
 		if (activeData.type === 'section') return;
 
-		if (activeData.type === 'task' && overData?.type === 'task') {
-			const activeTask = activeData.task;
-			const overSectionId = overData?.task?.section;
-			const numberOfTasksInOverSection = localTasks?.filter(
-				(task) => task.section === overSectionId,
-			)?.length;
-			if (activeTaskOriginSection !== overSectionId) {
-				setLocalTasks((prev) =>
-					prev
-						?.map((task) =>
-							task.id === activeTask.id
-								? {
-										...task,
-										section: overSectionId,
-										position: numberOfTasksInOverSection!,
-									}
-								: task,
-						)
-						.sort((a, b) => a.position - b.position),
-				);
+		if (activeData.type === 'task') {
+			const draggedTask: TTask = activeData.task;
+			if (!draggedTask) return;
+
+			let targetSectionId: string | null = null;
+			let targetPosition: number | null = null;
+
+			if (overData?.type === 'task') {
+				const overTask: TTask = overData.task;
+				targetSectionId = overTask.section;
+				targetPosition = overTask.position;
+			} else if (overData?.type === 'section') {
+				targetSectionId = over.id as string;
+				const tasksInTarget =
+					localTasks?.filter((t) => t.section === targetSectionId) || [];
+				targetPosition = tasksInTarget.length;
 			}
-			// } else {
-			// 	setLocalTasks((prev) =>
-			// 		prev
-			// 			?.map((task) =>
-			// 				task.id === activeTask.id
-			// 					? {
-			// 							...task,
-			// 							section: activeTaskOriginSection!,
-			// 							position: activeTaskOriginPosition!,
-			// 						}
-			// 					: task,
-			// 			)
-			// 			.sort((a, b) => a.position - b.position),
-			// 	);
-			// }
-		}
-		if (activeData.type === 'task' && overData?.type === 'section') {
-			const activeTask = activeData.task;
-			const overSectionId = over.id;
-			const numberOfTasksInOverSection = localTasks?.filter(
-				(task) => task.section === overSectionId,
-			)?.length;
-			if (activeTaskOriginSection !== overSectionId) {
-				setLocalTasks((prev) =>
-					prev
-						?.map((task) =>
-							task.id === activeTask.id
-								? {
-										...task,
-										section: overSectionId as string,
-										position: numberOfTasksInOverSection!,
-									}
-								: task,
-						)
-						.sort((a, b) => a.position - b.position),
-				);
-			} else {
-				setLocalTasks((prev) =>
-					prev
-						?.map((task) =>
-							task.id === activeTask.id
-								? {
-										...task,
-										section: activeTaskOriginSection! as string,
-										position: activeTaskOriginPosition!,
-									}
-								: task,
-						)
-						.sort((a, b) => a.position - b.position),
-				);
+
+			if (!targetSectionId || targetPosition == null) return;
+
+			const currentTask = localTasks?.find((t) => t.id === draggedTask.id);
+			if (!currentTask) return;
+
+			const currentSection = currentTask.section;
+			const currentPosition = currentTask.position;
+
+			const sameSection = currentSection === targetSectionId;
+			const samePosition = currentPosition === targetPosition;
+			if (sameSection && samePosition) {
+				return;
 			}
+
+			const tasksInTarget = localTasks!.filter(
+				(t) => t.section === targetSectionId,
+			);
+			if (targetPosition > tasksInTarget.length) {
+				return;
+			}
+
+			setLocalTasks((prev) => {
+				if (!prev) return prev;
+
+				// Remove the task from old place
+				const withoutTask = prev.filter((t) => t.id !== draggedTask.id);
+
+				// Insert into target section
+				const tasksOfTarget = withoutTask.filter(
+					(t) => t.section === targetSectionId,
+				);
+				const otherTasks = withoutTask.filter(
+					(t) => t.section !== targetSectionId,
+				);
+
+				// Insert dragged task at targetPosition
+				tasksOfTarget.splice(targetPosition, 0, {
+					...draggedTask,
+					section: targetSectionId,
+				});
+
+				// Reassign positions in target section:
+				for (let i = 0; i < tasksOfTarget.length; i++) {
+					tasksOfTarget[i] = { ...tasksOfTarget[i], position: i };
+				}
+
+				return [...otherTasks, ...tasksOfTarget];
+			});
 		}
 	};
 
@@ -225,12 +218,16 @@ const BoardBody: React.FC<BoardBodyProps> = ({ boardId }) => {
 
 		const { active, over } = event;
 
-		if (!over) return;
+		if (!over) {
+			// No valid drop area, revert to original tasks
+			setLocalTasks(tasks?.sort((a, b) => a.position - b.position));
+			return;
+		}
 
 		const activeData = active.data.current;
 		const overData = over.data.current;
 
-		// Reordering sections
+		// Handle section reorder
 		if (activeData?.type === 'section' && overData?.type === 'section') {
 			setLocalSections((prevSections) => {
 				const oldIndex = prevSections!.findIndex(
@@ -246,102 +243,66 @@ const BoardBody: React.FC<BoardBodyProps> = ({ boardId }) => {
 			});
 		}
 
-		// Handle task drop
+		// Handle task drop finalization
 		if (activeData?.type === 'task') {
-			const activeTask = activeData.task;
+			const droppedTask = activeData.task;
 			const overTask = overData?.task;
 
 			const oldPosition = activeTaskOriginPosition!;
 			const sourceSection = activeTaskOriginSection!;
 			const targetSection =
 				overData?.type === 'section' ? over.id : overTask?.section;
-			let newPosition;
+
+			let newPosition: number | undefined;
 
 			if (overData?.type === 'section') {
+				// Dropped in section area (no specific task)
 				const tasksInTargetSection = localTasks!.filter(
 					(task) => task.section === targetSection,
 				);
-				newPosition = tasksInTargetSection.length - 1;
+				newPosition = tasksInTargetSection.findIndex(
+					(t) => t.id === droppedTask.id,
+				);
+				if (newPosition < 0) newPosition = tasksInTargetSection.length - 1;
 			} else if (overData?.type === 'task' && overTask) {
 				newPosition = overTask.position;
 			}
 
-			const isSameSection = sourceSection === targetSection;
-
-			if (isSameSection && oldPosition === newPosition) return;
-
-			if (isSameSection) {
-				// Reorder tasks in the same section
-				const tasksInSameSection = localTasks!.filter(
-					(task) => task.section === sourceSection,
-				);
-
-				const reorderedTasks = arrayMove(
-					tasksInSameSection,
-					oldPosition,
-					newPosition,
-				);
-
-				const updatedTasks = reorderedTasks.map((task, index) => ({
-					...task,
-					position: index,
-				}));
-
-				setLocalTasks((prev) =>
-					prev
-						?.map((task) =>
-							task.section === sourceSection
-								? updatedTasks.find((t) => t.id === task.id)!
-								: task,
-						)
-						.sort((a, b) => a.position - b.position),
-				);
-			} else {
-				const tasksInSourceSection = localTasks!.filter(
-					(task) => task.section === sourceSection && task.id !== activeTask.id,
-				);
-				const tasksInTargetSection = localTasks!.filter(
-					(task) => task.section === targetSection && task.id !== activeTask.id,
-				);
-
-				const updatedSourceTasks = tasksInSourceSection.map((task, index) => ({
-					...task,
-					position: index,
-				}));
-
-				const updatedTargetTasks = [
-					...tasksInTargetSection.slice(0, newPosition),
-					{ ...activeTask, section: targetSection, position: newPosition },
-					...tasksInTargetSection.slice(newPosition),
-				].map((task, index) => ({
-					...task,
-					position: index,
-				}));
-
-				const updatedTasks = [...updatedSourceTasks, ...updatedTargetTasks];
-				const updatedTasksMap = new Map(
-					updatedTasks.map((task) => [task.id, task]),
-				);
-
-				setLocalTasks((prev) =>
-					prev
-						?.map((task) => updatedTasksMap.get(task.id) ?? task)
-						.sort((a, b) => a.position - b.position),
-				);
+			if (newPosition === undefined) {
+				// Invalid drop, revert
+				setLocalTasks(tasks?.sort((a, b) => a.position - b.position));
+				return;
 			}
 
-			// Update backend
+			const isSameSection = sourceSection === targetSection;
+			const isSamePosition = oldPosition === newPosition;
+
+			if (isSameSection && isSamePosition) {
+				// No changes needed, revert to original sorted tasks
+				setLocalTasks((prev) =>
+					prev ? [...prev].sort((a, b) => a.position - b.position) : prev,
+				);
+				return;
+			}
+
+			// Update backend for the move
 			try {
 				await moveTask({
 					boardId,
-					taskId: activeTask.id,
+					taskId: droppedTask.id,
 					fromSection: sourceSection,
 					toSection: targetSection,
 					position: newPosition,
 				}).unwrap();
 			} catch (error) {
 				handleError(error);
-				setLocalTasks(tasks);
+				// On error, revert
+				setLocalTasks(tasks?.sort((a, b) => a.position - b.position));
+			} finally {
+				// Resort tasks after finalizing move for stable order
+				setLocalTasks((prev) =>
+					prev ? [...prev].sort((a, b) => a.position - b.position) : prev,
+				);
 			}
 		}
 	};
