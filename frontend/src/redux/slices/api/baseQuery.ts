@@ -1,8 +1,10 @@
 import { fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import { tokenManager } from '../../../utils/tokenManager';
 
+const apiEndpoint = import.meta.env.VITE_API_ENDPOINT;
+
 export const baseQuery = fetchBaseQuery({
-	baseUrl: 'https://kanban-board-backend-qwe7.onrender.com/api/',
+	baseUrl: apiEndpoint,
 	prepareHeaders: (headers, { endpoint }) => {
 		if (endpoint !== 'login' && endpoint !== 'register') {
 			const token = tokenManager.getToken();

@@ -7,5 +7,3 @@ export interface TSection {
 	board: string;
 	tasks: TTask[];
 }
-
-export type TSections = TSection[];

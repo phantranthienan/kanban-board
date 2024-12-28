@@ -40,14 +40,12 @@ const Login: React.FC = () => {
 			dispatch(
 				showNotification({ message: 'Login successful', type: 'success' }),
 			);
-			// Don't navigate yet, wait for user to be fetched and set
 		} catch (error: unknown) {
 			handleError(error);
 		}
 	};
 
 	useEffect(() => {
-		// Once isAuthenticated and user are available, navigate
 		if (isAuthenticated && user) {
 			navigate('/', { replace: true });
 		}

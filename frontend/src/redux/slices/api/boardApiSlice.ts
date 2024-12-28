@@ -1,13 +1,13 @@
 import { createApi } from '@reduxjs/toolkit/query/react';
 import { baseQuery } from './baseQuery';
-import { TBoard, TBoards } from '../../../types/boards';
+import { TBoard } from '../../../types/boards';
 
 export const boardApi = createApi({
 	reducerPath: 'boardApi',
 	baseQuery: baseQuery,
 	tagTypes: ['Board'],
 	endpoints: (builder) => ({
-		getBoards: builder.query<TBoards, void>({
+		getBoards: builder.query<TBoard[], void>({
 			query: () => 'boards',
 			providesTags: ['Board'],
 		}),

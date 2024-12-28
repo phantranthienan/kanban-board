@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 
 import { showNotification } from '../redux/slices/notificationSlice';
 import { useAppDispatch } from '../hooks/storeHooks';
 import { useErrorHandler } from '../hooks/useErrorHandler';
+import useAuth from '../hooks/useAuth';
 
 import { SubmitHandler, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -18,9 +19,16 @@ const Register: React.FC = () => {
 	const dispatch = useAppDispatch();
 	const navigate = useNavigate();
 	const handleError = useErrorHandler();
+	const { isAuthenticated, user } = useAuth();
 
 	// Access the register mutation from RTK Query
 	const [registerUser, { isLoading }] = useRegisterMutation();
+
+	useEffect(() => {
+		if (isAuthenticated && user) {
+			navigate('/', { replace: true });
+		}
+	}, [isAuthenticated, user, navigate]);
 
 	const {
 		register,

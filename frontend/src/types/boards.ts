@@ -8,5 +8,3 @@ export interface TBoard {
 	user: string;
 	sections: string[];
 }
-
-export type TBoards = TBoard[];
