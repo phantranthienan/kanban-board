@@ -1,24 +1,27 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import {
 	DndContext,
 	DragStartEvent,
-	DragEndEvent,
 	DragOverEvent,
-	DragOverlay,
+	DragEndEvent,
+	PointerSensor,
 	useSensor,
 	useSensors,
-	PointerSensor,
+	DragOverlay,
 } from '@dnd-kit/core';
 import {
 	SortableContext,
-	arrayMove,
 	horizontalListSortingStrategy,
+	arrayMove,
 } from '@dnd-kit/sortable';
+
+import { Box, Typography } from '@mui/material';
 
 import { useAppDispatch } from '../../hooks/storeHooks';
 import { showNotification } from '../../redux/slices/notificationSlice';
 import { useErrorHandler } from '../../hooks/useErrorHandler';
+
 import {
 	useGetSectionsQuery,
 	useCreateSectionMutation,
@@ -29,10 +32,9 @@ import {
 	useMoveTaskMutation,
 } from '../../redux/slices/api/taskApiSlice';
 
-import { Box, Typography } from '@mui/material';
+import Loading from '../common/Loading';
 import SectionColumn from './SectionColumn';
 import TaskItem from './TaskItem';
-import Loading from '../common/Loading';
 
 import { TSection } from '../../types/sections';
 import { TTask } from '../../types/tasks';
@@ -42,267 +44,250 @@ type BoardBodyProps = {
 };
 
 const BoardBody: React.FC<BoardBodyProps> = ({ boardId }) => {
-	// Queries
+	// ======= QUERIES =======
 	const { data: sections, isLoading: sectionsLoading } =
 		useGetSectionsQuery(boardId);
 	const { data: tasks, isLoading: tasksLoading } =
 		useGetTasksOfBoardQuery(boardId);
 
-	// Mutations
+	// ======= MUTATIONS =======
 	const [createSection, { isLoading: isCreating }] = useCreateSectionMutation();
 	const [reorderSections] = useReorderSectionsMutation();
 	const [moveTask] = useMoveTaskMutation();
 
-	// Local States
+	// ======= LOCAL STATE =======
+	// For columns (sections)
+	const [localSections, setLocalSections] = useState<TSection[]>([]);
+	// Dictionary: sectionId -> tasks
+	const [sectionTasks, setSectionTasks] = useState<Record<string, TTask[]>>({});
+
+	// Track the item being dragged for DragOverlay
 	const [activeSection, setActiveSection] = useState<TSection | null>(null);
 	const [activeTask, setActiveTask] = useState<TTask | null>(null);
 
-	const [localSections, setLocalSections] = useState<TSection[] | undefined>(
-		sections,
-	);
-	const [localTasks, setLocalTasks] = useState<TTask[] | undefined>(tasks);
+	// Store original location for tasks to finalize cross-section in handleDragEnd
+	const [originSection, setOriginSection] = useState<string | null>(null);
+	const [originPosition, setOriginPosition] = useState<number | null>(null);
 
-	// Store original info for task revert if needed
-	const [activeTaskOriginSection, setActiveTaskOriginSection] = useState<
-		string | null
-	>(null);
-	const [activeTaskOriginPosition, setActiveTaskOriginPosition] = useState<
-		number | null
-	>(null);
+	// For reverting on error if needed (optional)
+	const originalTasksRef = useRef<Record<string, TTask[]> | null>(null);
 
 	const dispatch = useAppDispatch();
 	const handleError = useErrorHandler();
 
+	// DnD sensors
 	const sensors = useSensors(
-		useSensor(PointerSensor, { activationConstraint: { distance: 1 } }),
+		useSensor(PointerSensor, {
+			activationConstraint: { distance: 1 },
+		}),
 	);
 
-	// On initial load or updates, sort tasks once and store
+	// ======= Initialize localSections & sectionTasks from server data =======
 	useEffect(() => {
-		setLocalSections(sections);
+		if (sections) {
+			setLocalSections(sections);
+		}
 	}, [sections]);
 
 	useEffect(() => {
 		if (tasks) {
-			const sortedTasks = [...tasks].sort((a, b) => a.position - b.position);
-			setLocalTasks(sortedTasks);
+			const taskMap: Record<string, TTask[]> = {};
+			tasks.forEach((task) => {
+				if (!taskMap[task.section]) {
+					taskMap[task.section] = [];
+				}
+				taskMap[task.section].push(task);
+			});
+			// Sort tasks in each section
+			Object.keys(taskMap).forEach((secId) => {
+				taskMap[secId].sort((a, b) => a.position - b.position);
+			});
+			setSectionTasks(taskMap);
 		}
 	}, [tasks]);
 
-	const sectionIds = useMemo(
-		() => localSections?.map((section) => section.id) ?? [],
-		[localSections],
-	);
+	const sectionIds = localSections.map((sec) => sec.id);
 
+	const revertTasks = () => {
+		if (originalTasksRef.current) {
+			setSectionTasks(originalTasksRef.current);
+			originalTasksRef.current = null;
+		}
+	};
+
+	// ======= CREATE NEW SECTION =======
 	const handleCreateSection = async () => {
 		try {
 			await createSection(boardId).unwrap();
 			dispatch(
 				showNotification({ message: 'Section created', type: 'success' }),
 			);
-		} catch (error: unknown) {
+		} catch (error) {
 			handleError(error);
 		}
 	};
 
-	// Update sections order in backend
+	// ======= REORDER SECTIONS =======
 	const bulkUpdateSections = async (updatedSections: TSection[]) => {
 		try {
-			const sectionsToUpdate = updatedSections.map((section, index) => ({
+			const dataForServer = updatedSections.map((section, index) => ({
 				id: section.id,
 				position: index,
 			}));
-			await reorderSections({ boardId, sections: sectionsToUpdate }).unwrap();
+			await reorderSections({ boardId, sections: dataForServer }).unwrap();
 		} catch (error) {
 			handleError(error);
-			setLocalSections(sections);
+			// revert localSections if needed
+			if (sections) {
+				setLocalSections(sections);
+			}
 		}
 	};
 
-	// DRAG EVENTS
+	// ======= DND HANDLERS =======
+
 	const handleDragStart = (event: DragStartEvent) => {
 		const dragItem = event.active.data.current;
 		if (!dragItem) return;
 
-		const { type } = dragItem;
-		if (type === 'section') {
+		// Store original tasks if you want to revert on error
+		if (!originalTasksRef.current) {
+			originalTasksRef.current = structuredClone(sectionTasks);
+		}
+
+		if (dragItem.type === 'section') {
 			setActiveSection(dragItem.section);
-		} else if (type === 'task') {
-			setActiveTask(dragItem.task);
-			setActiveTaskOriginSection(dragItem.task.section);
-			setActiveTaskOriginPosition(dragItem.task.position);
+		} else if (dragItem.type === 'task') {
+			const task = dragItem.task as TTask;
+			setActiveTask(task);
+			setOriginSection(task.section);
+			setOriginPosition(task.position);
 		}
 	};
 
-	const handleDragOver = (event: DragOverEvent) => {
-		const { active, over } = event;
-		if (!over || !active.data.current) return;
-
-		const activeData = active.data.current;
-		const overData = over.data.current;
-
-		if (activeData.type === 'section') return;
-
-		if (activeData.type === 'task') {
-			const draggedTask: TTask = activeData.task;
-			if (!draggedTask) return;
-
-			let targetSectionId: string | null = null;
-			let targetPosition: number | null = null;
-
-			if (overData?.type === 'task') {
-				const overTask: TTask = overData.task;
-				targetSectionId = overTask.section;
-				targetPosition = overTask.position;
-			} else if (overData?.type === 'section') {
-				targetSectionId = over.id as string;
-				const tasksInTarget =
-					localTasks?.filter((t) => t.section === targetSectionId) || [];
-				targetPosition = tasksInTarget.length;
-			}
-
-			if (!targetSectionId || targetPosition == null) return;
-
-			const currentTask = localTasks?.find((t) => t.id === draggedTask.id);
-			if (!currentTask) return;
-
-			const currentSection = currentTask.section;
-			const currentPosition = currentTask.position;
-
-			const sameSection = currentSection === targetSectionId;
-			const samePosition = currentPosition === targetPosition;
-			if (sameSection && samePosition) {
-				return;
-			}
-
-			const tasksInTarget = localTasks!.filter(
-				(t) => t.section === targetSectionId,
-			);
-			if (targetPosition > tasksInTarget.length) {
-				return;
-			}
-
-			setLocalTasks((prev) => {
-				if (!prev) return prev;
-
-				// Remove the task from old place
-				const withoutTask = prev.filter((t) => t.id !== draggedTask.id);
-
-				// Insert into target section
-				const tasksOfTarget = withoutTask.filter(
-					(t) => t.section === targetSectionId,
-				);
-				const otherTasks = withoutTask.filter(
-					(t) => t.section !== targetSectionId,
-				);
-
-				// Insert dragged task at targetPosition
-				tasksOfTarget.splice(targetPosition, 0, {
-					...draggedTask,
-					section: targetSectionId,
-				});
-
-				// Reassign positions in target section:
-				for (let i = 0; i < tasksOfTarget.length; i++) {
-					tasksOfTarget[i] = { ...tasksOfTarget[i], position: i };
-				}
-
-				return [...otherTasks, ...tasksOfTarget];
-			});
-		}
-	};
+	const handleDragOver = (event: DragOverEvent) => {};
 
 	const handleDragEnd = async (event: DragEndEvent) => {
 		setActiveSection(null);
 		setActiveTask(null);
 
 		const { active, over } = event;
-
 		if (!over) {
-			// No valid drop area, revert to original tasks
-			setLocalTasks(tasks?.sort((a, b) => a.position - b.position));
+			// Dropped outside => revert
+			revertTasks();
 			return;
 		}
 
 		const activeData = active.data.current;
 		const overData = over.data.current;
 
-		// Handle section reorder
+		// ======= Handle Section Reorder (columns) =======
 		if (activeData?.type === 'section' && overData?.type === 'section') {
-			setLocalSections((prevSections) => {
-				const oldIndex = prevSections!.findIndex(
-					(section) => section.id === activeData.section.id,
-				);
-				const newIndex = prevSections!.findIndex(
-					(section) => section.id === overData.section.id,
-				);
-				const reorderedSections = arrayMove(prevSections!, oldIndex, newIndex);
-				bulkUpdateSections(reorderedSections);
+			setLocalSections((prev) => {
+				if (!prev) return prev;
+				const fromIndex = prev.findIndex((s) => s.id === activeData.section.id);
+				const toIndex = prev.findIndex((s) => s.id === overData.section.id);
+				if (fromIndex === toIndex) return prev;
 
-				return reorderedSections;
+				// Use arrayMove for columns
+				const reordered = arrayMove(prev, fromIndex, toIndex);
+				bulkUpdateSections(reordered);
+				return reordered;
 			});
+			return;
 		}
 
-		// Handle task drop finalization
+		// ======= Handle Task Moves (both same-section & cross-section) =======
 		if (activeData?.type === 'task') {
-			const droppedTask = activeData.task;
-			const overTask = overData?.task;
+			const droppedTask = activeData.task as TTask;
 
-			const oldPosition = activeTaskOriginPosition!;
-			const sourceSection = activeTaskOriginSection!;
-			const targetSection =
-				overData?.type === 'section' ? over.id : overTask?.section;
+			let targetSectionId: string;
+			let targetIndex: number;
 
-			let newPosition: number | undefined;
-
-			if (overData?.type === 'section') {
-				// Dropped in section area (no specific task)
-				const tasksInTargetSection = localTasks!.filter(
-					(task) => task.section === targetSection,
-				);
-				newPosition = tasksInTargetSection.findIndex(
-					(t) => t.id === droppedTask.id,
-				);
-				if (newPosition < 0) newPosition = tasksInTargetSection.length - 1;
-			} else if (overData?.type === 'task' && overTask) {
-				newPosition = overTask.position;
-			}
-
-			if (newPosition === undefined) {
-				// Invalid drop, revert
-				setLocalTasks(tasks?.sort((a, b) => a.position - b.position));
+			// If we dropped on a specific task
+			if (overData?.type === 'task') {
+				const overTask = overData.task as TTask;
+				targetSectionId = overTask.section;
+				targetIndex = overTask.position;
+			} else if (overData?.type === 'section') {
+				targetSectionId = over.id as string;
+				const tasksInTarget = sectionTasks[targetSectionId] || [];
+				targetIndex = tasksInTarget.length; // place at the end
+			} else {
+				revertTasks();
 				return;
 			}
 
-			const isSameSection = sourceSection === targetSection;
-			const isSamePosition = oldPosition === newPosition;
+			const fromSectionId = droppedTask.section;
+			const fromIndex = originPosition || 0;
+			const isSameSection = fromSectionId === targetSectionId;
 
-			if (isSameSection && isSamePosition) {
-				// No changes needed, revert to original sorted tasks
-				setLocalTasks((prev) =>
-					prev ? [...prev].sort((a, b) => a.position - b.position) : prev,
-				);
-				return;
-			}
-
-			// Update backend for the move
+			// ========== OPTIMISTIC UPDATE ==========
 			try {
-				await moveTask({
-					boardId,
-					taskId: droppedTask.id,
-					fromSection: sourceSection,
-					toSection: targetSection,
-					position: newPosition,
-				}).unwrap();
+				if (isSameSection) {
+					setSectionTasks((prev) => {
+						const cloned = structuredClone(prev) as Record<string, TTask[]>;
+						const tasksInSection = cloned[fromSectionId];
+
+						const oldIndex = tasksInSection.findIndex(
+							(t) => t.id === droppedTask.id,
+						);
+						const newIndex = targetIndex;
+
+						if (oldIndex === -1 || newIndex === -1 || oldIndex === newIndex) {
+							return cloned;
+						}
+
+						const moved = arrayMove(tasksInSection, oldIndex, newIndex);
+
+						moved.forEach((task, i) => {
+							task.position = i;
+						});
+						cloned[fromSectionId] = moved;
+						return cloned;
+					});
+
+					await moveTask({
+						boardId,
+						taskId: droppedTask.id,
+						fromSection: fromSectionId,
+						toSection: fromSectionId,
+						position: targetIndex,
+					}).unwrap();
+				} else {
+					setSectionTasks((prev) => {
+						const cloned = structuredClone(prev) as Record<string, TTask[]>;
+
+						cloned[fromSectionId] = cloned[fromSectionId].filter(
+							(t) => t.id !== droppedTask.id,
+						);
+
+						if (!cloned[targetSectionId]) cloned[targetSectionId] = [];
+						const updatedTask = { ...droppedTask, section: targetSectionId };
+						cloned[targetSectionId].splice(targetIndex, 0, updatedTask);
+
+						cloned[targetSectionId].forEach((task, i) => {
+							task.position = i;
+						});
+
+						return cloned;
+					});
+
+					await moveTask({
+						boardId,
+						taskId: droppedTask.id,
+						fromSection: fromSectionId,
+						toSection: targetSectionId,
+						position: targetIndex,
+					}).unwrap();
+				}
 			} catch (error) {
 				handleError(error);
-				// On error, revert
-				setLocalTasks(tasks?.sort((a, b) => a.position - b.position));
+				revertTasks();
 			} finally {
-				// Resort tasks after finalizing move for stable order
-				setLocalTasks((prev) =>
-					prev ? [...prev].sort((a, b) => a.position - b.position) : prev,
-				);
+				originalTasksRef.current = null;
+				setOriginSection(null);
+				setOriginPosition(null);
 			}
 		}
 	};
@@ -311,8 +296,8 @@ const BoardBody: React.FC<BoardBodyProps> = ({ boardId }) => {
 		<DndContext
 			sensors={sensors}
 			onDragStart={handleDragStart}
-			onDragEnd={handleDragEnd}
 			onDragOver={handleDragOver}
+			onDragEnd={handleDragEnd}
 		>
 			<Box
 				sx={{
@@ -320,27 +305,35 @@ const BoardBody: React.FC<BoardBodyProps> = ({ boardId }) => {
 					display: 'flex',
 					alignItems: 'flex-start',
 					gap: 1,
-					overflowX: 'auto',
 					mt: 1,
+					overflowX: 'auto',
 				}}
 			>
+				{/* Loading indicator */}
 				{(sectionsLoading || tasksLoading) && <Loading />}
-				{localSections && localTasks && (
+
+				{/* SortableContext for columns */}
+				{localSections && (
 					<SortableContext
 						items={sectionIds}
 						strategy={horizontalListSortingStrategy}
 					>
-						{localSections.map((section) => (
-							<SectionColumn
-								key={section.id}
-								section={section}
-								tasks={localTasks.filter((task) => task.section == section.id)}
-								// .sort((a, b) => a.position - b.position)}
-							/>
-						))}
+						{localSections.map((section) => {
+							// We pass the tasks from sectionTasks
+							const tasksInThisSection = sectionTasks[section.id] || [];
+							return (
+								<SectionColumn
+									key={section.id}
+									section={section}
+									tasks={tasksInThisSection}
+								/>
+							);
+						})}
+
+						{/* Create New Section Button */}
 						<Box
 							component="button"
-							onClick={() => handleCreateSection()}
+							onClick={handleCreateSection}
 							sx={{
 								display: 'flex',
 								justifyContent: 'center',
@@ -359,14 +352,14 @@ const BoardBody: React.FC<BoardBodyProps> = ({ boardId }) => {
 						>
 							{isCreating ? <Loading /> : <Typography>New Section</Typography>}
 						</Box>
+
+						{/* Drag Overlay */}
 						{createPortal(
 							<DragOverlay>
 								{activeSection && (
 									<SectionColumn
 										section={activeSection}
-										tasks={localTasks?.filter(
-											(task) => task.section == activeSection.id,
-										)}
+										tasks={sectionTasks[activeSection.id] || []}
 									/>
 								)}
 								{activeTask && <TaskItem task={activeTask} />}

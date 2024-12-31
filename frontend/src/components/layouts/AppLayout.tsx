@@ -13,7 +13,6 @@ const AppLayout: React.FC = () => {
 				sx={{
 					display: 'flex',
 					height: '100vh',
-					overflow: 'auto',
 				}}
 			>
 				<SideBar />

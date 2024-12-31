@@ -76,8 +76,9 @@ const SideBar: React.FC = () => {
 	}, [isSuccess, boardsData]);
 
 	const sidebarWidth = 250;
+	const numberOfFavorites = boards.filter((board) => board.favorite).length;
 	const maxHeight = showFavorites
-		? 'calc(100vh - 20% - 72px - 2 * 64px - 0.8 * 2px)'
+		? `calc(100vh - min(20%, ${numberOfFavorites} * 56px) - 72px - 2 * 64px - 0.8 * 2px)`
 		: 'calc(100vh - 72px - 2 * 64px - 0.8 * 2px)';
 
 	// Configure DnD with sensor to activate dragging after a slight movement
