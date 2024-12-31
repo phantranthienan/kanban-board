@@ -48,7 +48,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
 	const [loginMutation] = useLoginMutation();
 
 	const login = async (credentials: LoginInput) => {
-		const { token } = await loginMutation(credentials).unwrap();
+		const { token, user } = await loginMutation(credentials).unwrap();
+		setUser(user);
 		tokenManager.setToken(token);
 	};
 

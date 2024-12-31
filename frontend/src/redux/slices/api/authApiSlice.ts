@@ -10,7 +10,7 @@ export const authApi = createApi({
 		getUserInfo: builder.query<TUser, void>({
 			query: () => 'auth/me',
 		}),
-		login: builder.mutation<{ token: string }, LoginInput>({
+		login: builder.mutation<{ token: string; user: TUser }, LoginInput>({
 			query: (credentials) => ({
 				url: 'auth/login',
 				method: 'POST',

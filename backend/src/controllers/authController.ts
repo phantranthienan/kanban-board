@@ -27,8 +27,8 @@ export const register = async (req: Request, res: Response) => {
  */
 export const login = async (req: Request, res: Response) => {
     loginSchema.parse(req.body); // Validate input
-    const token = await authService.loginUser(req.body.username, req.body.password); // Authenticate the user
-    res.status(200).json({ token }); // Respond with the token
+    const { token, user } = await authService.loginUser(req.body.username, req.body.password); // Authenticate the user
+    res.status(200).json({ token, user }); // Respond with the token
 };
 
 /**

@@ -38,7 +38,7 @@ export const registerUser = async (userData: TUser): Promise<UserDocument> => {
  * @return {Promise<string>} The JWT token for the user session.
  * @throws {CustomError} Throws an error if the username does not exist or the password is incorrect.
  */
-export const loginUser = async (username: string, password: string): Promise<string> => {
+export const loginUser = async (username: string, password: string): Promise<{ token: string, user: UserDocument }> => {
     const user = await getUserByUsername(username);
     if (!user) {
         throw new CustomError('Wrong username or password', 401);
@@ -50,7 +50,7 @@ export const loginUser = async (username: string, password: string): Promise<str
     };
 
     const token = jwt.sign({ id: user._id }, config.JWT_SECRET, { expiresIn: '1d' });
-    return token;
+    return { token, user };
 };
 
 /**
