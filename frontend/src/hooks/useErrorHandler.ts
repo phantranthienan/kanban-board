@@ -3,10 +3,12 @@ import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { FetchBaseQueryError } from '@reduxjs/toolkit/query';
 import { showNotification } from '../redux/slices/notificationSlice';
+import useAuth from './useAuth';
 
 export const useErrorHandler = () => {
 	const dispatch = useDispatch();
 	const navigate = useNavigate();
+	const { logout } = useAuth();
 
 	const handleError = useCallback(
 		(error: unknown) => {
@@ -24,8 +26,7 @@ export const useErrorHandler = () => {
 					}
 
 					if (fetchError.status === 401) {
-						// Redirect to login if status is 401
-						navigate('/login');
+						logout();
 					}
 
 					dispatch(

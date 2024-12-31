@@ -7,6 +7,7 @@ export const handleError = (
 	error: unknown,
 	dispatch: AppDispatch,
 	navigate: NavigateFunction, // Pass the navigate function
+	logout: () => void, // Pass the logout function
 ) => {
 	if (error && typeof error === 'object') {
 		if ('status' in error) {
@@ -22,7 +23,7 @@ export const handleError = (
 
 			if (fetchError.status === 401) {
 				// Redirect to login if status is 401
-				navigate('/login');
+				logout();
 			}
 
 			dispatch(

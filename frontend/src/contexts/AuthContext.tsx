@@ -51,6 +51,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
 		const { token, user } = await loginMutation(credentials).unwrap();
 		setUser(user);
 		tokenManager.setToken(token);
+		setIsAuthenticated(true);
 	};
 
 	const logout = () => {
@@ -67,7 +68,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
 	}, [hasToken, refetch]);
 
 	useEffect(() => {
-		if (hasToken && userInfo) {
+		if (userInfo) {
 			setUser(userInfo);
 			setIsAuthenticated(true);
 		} else if ((error as FetchBaseQueryError)?.status === 401) {
