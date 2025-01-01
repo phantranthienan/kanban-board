@@ -1,12 +1,10 @@
 import { FetchBaseQueryError } from '@reduxjs/toolkit/query';
 import { AppDispatch } from '../redux/store';
 import { showNotification } from '../redux/slices/notificationSlice';
-import { NavigateFunction } from 'react-router-dom';
 
 export const handleError = (
 	error: unknown,
 	dispatch: AppDispatch,
-	navigate: NavigateFunction, // Pass the navigate function
 	logout: () => void, // Pass the logout function
 ) => {
 	if (error && typeof error === 'object') {

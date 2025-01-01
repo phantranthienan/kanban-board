@@ -1,13 +1,11 @@
 import { useCallback } from 'react';
 import { useDispatch } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
 import { FetchBaseQueryError } from '@reduxjs/toolkit/query';
 import { showNotification } from '../redux/slices/notificationSlice';
 import useAuth from './useAuth';
 
 export const useErrorHandler = () => {
 	const dispatch = useDispatch();
-	const navigate = useNavigate();
 	const { logout } = useAuth();
 
 	const handleError = useCallback(
@@ -52,7 +50,7 @@ export const useErrorHandler = () => {
 				}
 			}
 		},
-		[dispatch, navigate],
+		[dispatch, logout],
 	);
 
 	return handleError;

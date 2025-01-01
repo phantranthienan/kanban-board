@@ -5,7 +5,7 @@
   "scripts": {
     "build": "npx tsc",
     "start": "cross-env NODE_ENV=production dist/index.js",
-    "dev": "cross-env NODE_ENV=development ts-node-dev src/index.ts",
+    "dev": "cross-env NODE_ENV=production ts-node-dev src/index.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
