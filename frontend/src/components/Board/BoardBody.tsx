@@ -67,8 +67,8 @@ const BoardBody: React.FC<BoardBodyProps> = ({ boardId }) => {
 	const [activeTask, setActiveTask] = useState<TTask | null>(null);
 
 	// Store original location for tasks to finalize cross-section in handleDragEnd
-	const [originSection, setOriginSection] = useState<string | null>(null);
-	const [originPosition, setOriginPosition] = useState<number | null>(null);
+	// const [originSection, setOriginSection] = useState<string | null>(null);
+	// const [originPosition, setOriginPosition] = useState<number | null>(null);
 
 	// For reverting on error if needed (optional)
 	const originalTasksRef = useRef<Record<string, TTask[]> | null>(null);
@@ -161,12 +161,12 @@ const BoardBody: React.FC<BoardBodyProps> = ({ boardId }) => {
 		} else if (dragItem.type === 'task') {
 			const task = dragItem.task as TTask;
 			setActiveTask(task);
-			setOriginSection(task.section);
-			setOriginPosition(task.position);
+			// setOriginSection(task.section);
+			// setOriginPosition(task.position);
 		}
 	};
 
-	const handleDragOver = (event: DragOverEvent) => {};
+	// const handleDragOver = (event: DragOverEvent) => {};
 
 	const handleDragEnd = async (event: DragEndEvent) => {
 		setActiveSection(null);
@@ -220,7 +220,7 @@ const BoardBody: React.FC<BoardBodyProps> = ({ boardId }) => {
 			}
 
 			const fromSectionId = droppedTask.section;
-			const fromIndex = originPosition || 0;
+			// const fromIndex = originPosition || 0;
 			const isSameSection = fromSectionId === targetSectionId;
 
 			// ========== OPTIMISTIC UPDATE ==========
@@ -287,8 +287,8 @@ const BoardBody: React.FC<BoardBodyProps> = ({ boardId }) => {
 				revertTasks();
 			} finally {
 				originalTasksRef.current = null;
-				setOriginSection(null);
-				setOriginPosition(null);
+				// setOriginSection(null);
+				// setOriginPosition(null);
 			}
 		}
 	};
@@ -297,7 +297,7 @@ const BoardBody: React.FC<BoardBodyProps> = ({ boardId }) => {
 		<DndContext
 			sensors={sensors}
 			onDragStart={handleDragStart}
-			onDragOver={handleDragOver}
+			// onDragOver={handleDragOver}
 			onDragEnd={handleDragEnd}
 		>
 			<Box
