@@ -4,7 +4,6 @@ import { createPortal } from 'react-dom';
 import {
 	DndContext,
 	DragStartEvent,
-	DragOverEvent,
 	DragEndEvent,
 	PointerSensor,
 	useSensor,
