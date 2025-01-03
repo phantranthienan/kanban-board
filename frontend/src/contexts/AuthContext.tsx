@@ -31,9 +31,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
 	children,
 }) => {
 	const [user, setUser] = useState<TUser | null>(null);
-	const [isAuthenticated, setIsAuthenticated] = useState(false);
 
 	const hasToken = !!tokenManager.getToken();
+	const isAuthenticated = !!user;
+
 	const navigate = useNavigate();
 
 	const {
@@ -41,7 +42,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
 		error,
 		refetch,
 	} = useGetUserInfoQuery(undefined, {
-		skip: !hasToken,
+		skip: !hasToken && !isAuthenticated,
 		refetchOnReconnect: true,
 	});
 
@@ -51,26 +52,24 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
 		const { token, user } = await loginMutation(credentials).unwrap();
 		setUser(user);
 		tokenManager.setToken(token);
-		setIsAuthenticated(true);
+		navigate('/boards', { replace: true });
 	};
 
 	const logout = () => {
 		tokenManager.clearToken();
 		setUser(null);
-		setIsAuthenticated(false);
 		navigate('/login', { replace: true });
 	};
 
 	useEffect(() => {
-		if (hasToken) {
+		if (!user && hasToken) {
 			refetch();
 		}
-	}, [hasToken, refetch]);
+	}, [hasToken, refetch, user]);
 
 	useEffect(() => {
 		if (userInfo) {
 			setUser(userInfo);
-			setIsAuthenticated(true);
 		} else if ((error as FetchBaseQueryError)?.status === 401) {
 			logout();
 		}

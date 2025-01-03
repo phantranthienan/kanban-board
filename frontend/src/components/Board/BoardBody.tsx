@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import {
@@ -9,6 +8,7 @@ import {
 	useSensor,
 	useSensors,
 	DragOverlay,
+	DragOverEvent,
 } from '@dnd-kit/core';
 import {
 	SortableContext,
@@ -71,6 +71,10 @@ const BoardBody: React.FC<BoardBodyProps> = ({ boardId }) => {
 
 	// For reverting on error if needed (optional)
 	const originalTasksRef = useRef<Record<string, TTask[]> | null>(null);
+
+	// States for drop indicator
+	const [hoverSection, setHoverSection] = useState<string | null>(null);
+	const [dropIndex, setDropIndex] = useState<number | null>(null);
 
 	const dispatch = useAppDispatch();
 	const handleError = useErrorHandler();
@@ -155,6 +159,10 @@ const BoardBody: React.FC<BoardBodyProps> = ({ boardId }) => {
 			originalTasksRef.current = structuredClone(sectionTasks);
 		}
 
+		// Reset indicator
+		setHoverSection(null);
+		setDropIndex(null);
+
 		if (dragItem.type === 'section') {
 			setActiveSection(dragItem.section);
 		} else if (dragItem.type === 'task') {
@@ -165,11 +173,56 @@ const BoardBody: React.FC<BoardBodyProps> = ({ boardId }) => {
 		}
 	};
 
-	// const handleDragOver = (event: DragOverEvent) => {};
+	const handleDragOver = (event: DragOverEvent) => {
+		const { active, over } = event;
+		if (!over || !active.data.current) {
+			setHoverSection(null);
+			setDropIndex(null);
+			return;
+		}
+
+		const activeData = active.data.current;
+		const overData = over.data.current;
+
+		if (activeData.type === 'task') {
+			const draggedTask = activeData.task as TTask;
+			const fromSectionId = draggedTask.section;
+
+			// If we are over a task
+			if (overData?.type === 'task') {
+				const overTask = overData.task as TTask;
+				const toSectionId = overTask.section;
+
+				if (fromSectionId === toSectionId) {
+					setHoverSection(null);
+					setDropIndex(null);
+					return;
+				}
+				setHoverSection(toSectionId);
+				setDropIndex(overTask.position);
+			}
+			// If we are over a section (empty space)
+			else if (overData?.type === 'section') {
+				const toSectionId = over.id as string;
+				if (fromSectionId === toSectionId) {
+					setHoverSection(null);
+					setDropIndex(null);
+					return;
+				}
+				const tasksInTarget = sectionTasks[toSectionId] || [];
+				setHoverSection(toSectionId);
+				setDropIndex(tasksInTarget.length);
+			}
+		}
+	};
 
 	const handleDragEnd = async (event: DragEndEvent) => {
 		setActiveSection(null);
 		setActiveTask(null);
+
+		// Clear the indicator
+		setHoverSection(null);
+		setDropIndex(null);
 
 		const { active, over } = event;
 		if (!over) {
@@ -296,7 +349,7 @@ const BoardBody: React.FC<BoardBodyProps> = ({ boardId }) => {
 		<DndContext
 			sensors={sensors}
 			onDragStart={handleDragStart}
-			// onDragOver={handleDragOver}
+			onDragOver={handleDragOver}
 			onDragEnd={handleDragEnd}
 		>
 			<Box
@@ -320,12 +373,16 @@ const BoardBody: React.FC<BoardBodyProps> = ({ boardId }) => {
 					>
 						{localSections.map((section) => {
 							// We pass the tasks from sectionTasks
-							const tasksInThisSection = sectionTasks[section.id] || [];
+							const tasksInSection = sectionTasks[section.id] || [];
+							const indicatorIndex =
+								hoverSection === section.id ? dropIndex : null;
+
 							return (
 								<SectionColumn
 									key={section.id}
 									section={section}
-									tasks={tasksInThisSection}
+									tasks={tasksInSection}
+									dropIndex={indicatorIndex}
 								/>
 							);
 						})}

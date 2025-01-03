@@ -11,7 +11,14 @@ import {
 } from '../../redux/slices/api/sectionApiSlice';
 import { useCreateTaskMutation } from '../../redux/slices/api/taskApiSlice';
 
-import { Box, Stack, Button, IconButton, InputBase } from '@mui/material';
+import {
+	Box,
+	Stack,
+	Button,
+	IconButton,
+	InputBase,
+	Divider,
+} from '@mui/material';
 import TaskModal from './TaskModal';
 import TaskItem from './TaskItem';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -24,10 +31,11 @@ import { TTask } from '../../types/tasks';
 type SectionColumnProps = {
 	section: TSection;
 	tasks: TTask[];
+	dropIndex?: number | null;
 };
 
 const SectionColumn: React.FC<SectionColumnProps> = React.memo(
-	({ section, tasks }) => {
+	({ section, tasks, dropIndex }) => {
 		// Queries and mutations
 		const [deleteSection] = useDeleteSectionMutation();
 		const [updateSection] = useUpdateSectionMutation();
@@ -196,9 +204,18 @@ const SectionColumn: React.FC<SectionColumnProps> = React.memo(
 				>
 					<SortableContext items={taskIds}>
 						{/* Tasks */}
-						{tasks.map((task) => (
-							<TaskItem key={task.id} task={task} />
-						))}
+						{tasks.map((task, idx) => {
+							const showLine = dropIndex === idx;
+
+							return (
+								<React.Fragment key={task.id}>
+									{showLine && <InsertIndicator />}
+									<TaskItem task={task} />
+								</React.Fragment>
+							);
+						})}
+
+						{dropIndex === tasks.length && <InsertIndicator />}
 
 						{/* Add Task Button */}
 						<Box
@@ -238,3 +255,14 @@ const SectionColumn: React.FC<SectionColumnProps> = React.memo(
 );
 
 export default SectionColumn;
+
+/** A small component to show a divider line as the "drop indicator" */
+const InsertIndicator: React.FC = () => (
+	<Divider
+		sx={{
+			borderColor: 'white',
+			borderBottomWidth: 3,
+			my: 1,
+		}}
+	/>
+);
