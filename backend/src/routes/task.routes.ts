@@ -1,6 +1,6 @@
 import { Router } from 'express';
-import { createTask, getTaskById, updateTask, deleteTask, getTasksBySectionId, moveTask } from '../controllers/taskController';
-import { authMiddleware } from '../middleware/authMiddleware';
+import { createTask, getTaskById, updateTask, deleteTask, getTasksBySectionId, moveTask } from '../controllers/task.controller';
+import { authMiddleware } from '../middleware/auth.middleware';
 
 const router = Router({ mergeParams: true }); // Enable access to parent route parameters
 

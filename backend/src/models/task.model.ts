@@ -1,5 +1,5 @@
 import mongoose, { Schema, HydratedDocument, InferSchemaType } from 'mongoose';
-import { Section } from './sectionModel';
+import { Section } from './section.model';
 
 const taskSchema = new Schema({
     title: { 

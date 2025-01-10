@@ -1,9 +1,9 @@
 import express from 'express';
 
-import * as boardController from '../controllers/boardController';
-import { getTasksByBoardId, moveTask } from '../controllers/taskController';
-import  sectionRoutes from './sectionRoutes';
-import { authMiddleware } from '../middleware/authMiddleware';
+import * as boardController from '../controllers/board.controller';
+import { getTasksByBoardId, moveTask } from '../controllers/task.controller';
+import  sectionRoutes from './section.routes';
+import { authMiddleware } from '../middleware/auth.middleware';
  
 const router = express.Router();
 

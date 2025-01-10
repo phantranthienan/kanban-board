@@ -1,7 +1,5 @@
 import { Request, Response } from "express";
-import { taskSchema } from "../utils/zodSchemas";
-import * as taskService from "../services/taskService";
-import { log } from "console";
+import * as taskService from "../services/task.service";
 
 /**
  * Create a new task in a specific section.

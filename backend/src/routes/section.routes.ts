@@ -1,7 +1,7 @@
 import { Router } from 'express';
-import { createSection, getSectionById, updateSection, deleteSection, getSectionsByBoardId, reorderSections } from '../controllers/sectionController';
-import taskRoutes from './taskRoutes';
-import { authMiddleware } from '../middleware/authMiddleware';
+import { createSection, getSectionById, updateSection, deleteSection, getSectionsByBoardId, reorderSections } from '../controllers/section.controller';
+import taskRoutes from './task.routes';
+import { authMiddleware } from '../middleware/auth.middleware';
 
 const router = Router({ mergeParams: true }); // Enable access to boardId in params
 

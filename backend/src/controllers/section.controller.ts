@@ -1,6 +1,5 @@
 import { Request, Response } from 'express';
-import * as sectionService from '../services/sectionService';
-import { CustomError } from '../errors/CustomError';
+import * as sectionService from '../services/section.service';
 
 /**
  * Create a new section for a specific board.
