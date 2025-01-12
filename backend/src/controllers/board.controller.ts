@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
-import { AuthRequest } from '../middleware/auth.middleware';
-import * as boardService from '../services/board.service';
-import { CustomError } from '../errors';
+import { AuthRequest } from '@/middleware/auth.middleware';
+import * as boardService from '@/services/board.service';
+import { CustomError } from '@/errors';
 
 /**
  * Create a new board for the authenticated user.

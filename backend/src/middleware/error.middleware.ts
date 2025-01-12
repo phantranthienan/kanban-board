@@ -12,21 +12,23 @@ export const errorHandler = (error: Error, _req: Request, res: Response, _next: 
 
     // Handle Zod validation errors
     if (error instanceof ZodError) {
-        return res.status(400).json({
+        res.status(400).json({
             message: 'Validation Error',
             errors: error.issues.map((issue) => ({
                 path: issue.path.join('.'),
                 message: issue.message,
             })),
         });
+        return;
     }
 
     // Handle custom application errors
     if (error instanceof CustomError) {
-        return res.status(error.statusCode).json({
+        res.status(error.statusCode).json({
             message: error.message,
             ...(isDevelopment && { stack: error.stack }), // Include stack trace in development
         });
+        return;
     }
 
     // Handle generic server errors

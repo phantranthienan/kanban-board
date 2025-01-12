@@ -1,6 +1,6 @@
-import { CustomError } from "../errors";
-import { SectionDocument, TSection, createSection, getSectionById, updateSectionById, deleteSectionById, getSectionsByBoardId, bulkUpdateSections } from "../models/section.model";
-import { getNumberOfSectionsInBoard } from "../models/board.model";
+import { CustomError } from "@/errors";
+import { SectionDocument, TSection, createSection, getSectionById, updateSectionById, deleteSectionById, getSectionsByBoardId, bulkUpdateSections } from "@/models/section.model";
+import { getNumberOfSectionsInBoard } from "@/models/board.model";
 
 /**
  * Create a new section and add it to the board.

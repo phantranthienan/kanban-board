@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import * as taskService from "../services/task.service";
+import * as taskService from "@/services/task.service";
 
 /**
  * Create a new task in a specific section.

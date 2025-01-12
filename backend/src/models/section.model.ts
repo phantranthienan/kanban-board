@@ -1,6 +1,6 @@
 import mongoose, { Schema, HydratedDocument, InferSchemaType } from 'mongoose';
-import { Board } from './board.model';
-import { Task } from './task.model';
+import { Board } from '@/models/board.model';
+import { Task } from '@/models/task.model';
 
 const sectionSchema = new Schema({
     title: { 

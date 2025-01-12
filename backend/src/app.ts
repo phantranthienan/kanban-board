@@ -1,16 +1,16 @@
 import 'express-async-errors';
 import express, { Express, Response } from 'express';
 import mongoose from 'mongoose';
-import { config } from './config';
+import config from '@/config';
 import cors from 'cors';
 import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
 import compression from 'compression';
 import rateLimit from 'express-rate-limit';
-import { errorHandler } from './middleware/error.middleware';
-import { notFoundHandler } from './middleware/notFound.middleware';
-import router from './routes';
+import { errorHandler } from '@/middleware/error.middleware';
+import { notFoundHandler } from '@/middleware/notFound.middleware';
+import router from '@/routes';
 
 const app: Express = express();
 

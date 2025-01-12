@@ -1,4 +1,4 @@
-import { CustomError } from "../errors";
+import { CustomError } from "@/errors";
 import { 
     BoardDocument, 
     TBoard, 
@@ -8,7 +8,7 @@ import {
     updateBoardById,
     deleteBoardById,
     bulkUpdatePositions, 
-} from "../models/board.model";
+} from "@/models/board.model";
 
 /**
  * Create a new board for a user.

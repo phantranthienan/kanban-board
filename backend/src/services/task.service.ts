@@ -1,9 +1,9 @@
-import { CustomError } from "../errors";
+import { CustomError } from "@/errors";
 import { 
     TaskDocument, TTask, getTaskById, createTask, updateTaskById, deleteTaskById, 
     getTasksBySectionId, getTasksByBoardId, adjustPositionsInSection
-} from "../models/task.model";
-import { getNumberOfTasksInSection, removeTaskFromSection, addTaskToSection } from "../models/section.model";
+} from "@/models/task.model";
+import { getNumberOfTasksInSection, removeTaskFromSection, addTaskToSection } from "@/models/section.model";
 import { Types } from "mongoose";
 
 /**

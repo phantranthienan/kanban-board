@@ -1,22 +1,22 @@
 import request from 'supertest';
-import jwt from 'jsonwebtoken';
-import app from '../../src/app';
-import { createUser, deleteAllUsers, getUserByEmail } from '../../src/models/user.model';
-import { comparePassword, encryptPassword } from '../../src/utils/password';
+import app from '@/app';
+import { createUser, deleteAllUsers, getUserByEmail } from '@/models/user.model';
+import { comparePassword, encryptPassword } from '@/utils/password.util';
+import { generateRefreshToken } from '@/utils/token.util';
 
 describe('Auth Route', () => {
     beforeEach(async () => {
         await deleteAllUsers();
     });
-
+    const registerData = {
+        username: 'testuser',
+        email: 'test@example.com',
+        password: 'password123',
+        confirmPassword: 'password123',
+    };
     describe('POST api/auth/register', () => {
         it('should register a user successfully', async () => {
-            const response = await request(app).post('/api/auth/register').send({
-                username: 'testuser',
-                email: 'test@example.com',
-                password: 'password',
-                confirmPassword: 'password',
-            });
+            const response = await request(app).post('/api/auth/register').send(registerData);
 
             expect(response.status).toBe(201);
             expect(response.body.username).toBe('testuser');
@@ -25,7 +25,7 @@ describe('Auth Route', () => {
             const user = await getUserByEmail('test@example.com');
             expect(user).toBeDefined();
             expect(user?.username).toBe('testuser');
-            expect(await comparePassword('password', user?.password || '')).toBe(true);
+            expect(await comparePassword('password123', user?.password || '')).toBe(true);
         });
 
         it('should return 400 if email already exists', async () => {
@@ -35,12 +35,7 @@ describe('Auth Route', () => {
                 password: 'hashedPassword',
             });
 
-            const response = await request(app).post('/api/auth/register').send({
-                username: 'testuser2',
-                email: 'test@example.com',
-                password: 'password',
-                confirmPassword: 'password',
-            });
+            const response = await request(app).post('/api/auth/register').send({...registerData, username: 'testuser2'});
 
             expect(response.status).toBe(400);
             expect(response.body.message).toBe('Email already exists');
@@ -53,12 +48,7 @@ describe('Auth Route', () => {
                 password: 'hashedPassword',
             });
 
-            const response = await request(app).post('/api/auth/register').send({
-                username: 'testuser',
-                email: 'test2@example.com',
-                password: 'password',
-                confirmPassword: 'password',
-            });
+            const response = await request(app).post('/api/auth/register').send({...registerData, email: 'test2@example.com'});
             
             expect(response.status).toBe(400);
             expect(response.body.message).toBe('Username already exists');
@@ -82,8 +72,13 @@ describe('Auth Route', () => {
         
             expect(response.status).toBe(200); // HTTP 200 OK
             expect(response.body.accessToken).toBeDefined(); // Ensure access token is returned
-            expect(response.body.refreshToken).toBeDefined(); // Ensure refresh token is returned
             expect(response.body.user.username).toBe('testuser');
+
+            const cookies = response.headers['set-cookie'];
+            expect(cookies).toBeDefined();
+            const cookiesArray = cookies[0].split(';');
+            const refreshTokenCookie = cookiesArray.find((cookie: string) => cookie.trim().startsWith('refreshToken='));
+            expect(refreshTokenCookie).toBeDefined();
         });
 
         it('should return 401 for incorrect password', async () => {
@@ -118,16 +113,20 @@ describe('Auth Route', () => {
     describe('POST /api/auth/refresh-token', () => {
         it('should refresh the access token successfully', async () => {
           // Generate a refresh token for a fake user
-            const refreshToken = jwt.sign({ id: 'user123' }, process.env.JWT_REFRESH_SECRET!, {
-               expiresIn: '7d',
-            });
-          
+            const refreshToken = generateRefreshToken('user123');
             const response = await request(app)
                 .post('/api/auth/refresh-token')
                 .set('Cookie', [`refreshToken=${refreshToken}`]); // Send refresh token as cookie
           
             expect(response.status).toBe(200); // HTTP 200 OK
-            expect(response.body.accessToken).toBeDefined(); // Ensure a new access token is returned
+            expect(response.body.newAccessToken).toBeDefined(); // Ensure a new access token is returned
+        });
+
+        it('should return 401 if refresh token is not provided in cookies', async () => {
+            const response = await request(app).post('/api/auth/refresh-token');
+
+            expect(response.status).toBe(401); // HTTP 401 Unauthorized
+            expect(response.body.message).toBe('Refresh token not provided');
         });
     
         it('should return 401 for an invalid refresh token', async () => {

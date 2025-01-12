@@ -1,18 +1,30 @@
-import { register, login, googleLogin, refreshAccessToken } from '../../src/services/auth.service';
-import { getUserByEmail, getUserByGoogleId, getUserByUsername, createUser } from '../../src/models/user.model';
-import bcrypt from 'bcrypt';
-import jwt from 'jsonwebtoken';
+import { register, login, refreshAccessToken, handleGoogleCallback } from '@/services/auth.service';
+import { getUserByEmail, getUserByGoogleId, getUserByUsername, createUser } from '@/models/user.model';
+import { encryptPassword, comparePassword } from '@/utils/password.util';
+import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from '@/utils/token.util';
+import { getTokenInfo } from '@/utils/googleAuth.util';
 
-
-jest.mock('../../src/models/user.model', () => ({
+jest.mock('@/models/user.model', () => ({
     getUserByEmail: jest.fn(),
     getUserByGoogleId: jest.fn(),
     getUserByUsername: jest.fn(),
     createUser: jest.fn(),
 }));
 
-jest.mock('bcrypt');
-jest.mock('jsonwebtoken');
+jest.mock('@/utils/password.util', () => ({
+    encryptPassword: jest.fn(),
+    comparePassword: jest.fn(),
+}));
+
+jest.mock('@/utils/token.util', () => ({
+    generateAccessToken: jest.fn(),
+    generateRefreshToken: jest.fn(),
+    verifyRefreshToken: jest.fn(),
+}));
+
+jest.mock('@/utils/googleAuth.util', () => ({
+    getTokenInfo: jest.fn(),
+}));
 
 describe('Auth Service', () => {
     afterEach(() => {
@@ -29,14 +41,14 @@ describe('Auth Service', () => {
         it('should register a new user', async () => { 
             (getUserByEmail as jest.Mock).mockResolvedValue(null);
             (getUserByUsername as jest.Mock).mockResolvedValue(null);
-            (bcrypt.hash as jest.Mock).mockResolvedValue('hashedPassword');
+            (encryptPassword as jest.Mock).mockResolvedValue('hashedPassword');
             (createUser as jest.Mock).mockResolvedValue({ ...mockUserData, password: undefined });
 
             const user = await register(mockUserData);
 
             expect(getUserByEmail).toHaveBeenCalledWith(mockUserData.email);
             expect(getUserByUsername).toHaveBeenCalledWith(mockUserData.username);
-            expect(bcrypt.hash).toHaveBeenCalledWith(mockUserData.password, 12);
+            expect(encryptPassword).toHaveBeenCalledWith(mockUserData.password);
             expect(createUser).toHaveBeenCalledWith({ ...mockUserData, password: 'hashedPassword' });
             expect(user).toEqual({ ...mockUserData, password: undefined });
         });
@@ -65,19 +77,23 @@ describe('Auth Service', () => {
             password: 'hashedPassword',
         };
 
-        it('should return tokens for valid credentials', async () => {
+        it('should log in a user successfully', async () => {
             (getUserByUsername as jest.Mock).mockResolvedValue(mockUser);
-            (bcrypt.compare as jest.Mock).mockResolvedValue(true);
-            (jwt.sign as jest.Mock).mockReturnValue('mockToken');
+            (comparePassword as jest.Mock).mockResolvedValue(true);
+            (generateAccessToken as jest.Mock).mockReturnValue('accessToken');
+            (generateRefreshToken as jest.Mock).mockReturnValue('refreshToken');
 
-            const { accessToken, refreshToken, user } = await login('testuser', 'password');
+            const result = await login(mockUser.username, 'password123');
 
-            expect(getUserByUsername).toHaveBeenCalledWith('testuser');
-            expect(bcrypt.compare).toHaveBeenCalledWith('password', 'hashedPassword');
-            expect(jwt.sign).toHaveBeenCalledTimes(2);
-            expect(accessToken).toBe('mockToken');
-            expect(refreshToken).toBe('mockToken');
-            expect(user).toEqual(mockUser);
+            expect(getUserByUsername).toHaveBeenCalledWith(mockUser.username);
+            expect(comparePassword).toHaveBeenCalledWith('password123', 'hashedPassword');
+            expect(generateAccessToken).toHaveBeenCalledWith(mockUser._id);
+            expect(generateRefreshToken).toHaveBeenCalledWith(mockUser._id);
+            expect(result).toEqual({
+                accessToken: 'accessToken',
+                refreshToken: 'refreshToken',
+                user: mockUser,
+            });
         });
 
         it('should throw an error for invalid credentials', async () => {
@@ -88,38 +104,69 @@ describe('Auth Service', () => {
         });
     });
 
-    describe('google login', () => {
-        const mockGoogleUser = {
+    describe('handleGoogleCallback', () => {
+        const mockGoogleData = {
+            id: 'google123',
+            email: 'google@example.com',
+            name: 'Google User',
+        };
+
+        const mockUser = {
             _id: '1',
             googleId: 'google123',
-            email: 'test@gmail.com',
+            email: 'google@example.com',
         };
-        it('should login an existing Google user', async () => {
-            (getUserByGoogleId as jest.Mock).mockResolvedValue(mockGoogleUser);
-            (jwt.sign as jest.Mock).mockReturnValue('mockToken');
-            const { accessToken, refreshToken, user } = await googleLogin(mockGoogleUser.googleId, mockGoogleUser.email);
-            expect(getUserByGoogleId).toHaveBeenCalledWith(mockGoogleUser.googleId);
-            expect(jwt.sign).toHaveBeenCalledTimes(2);
-            expect(accessToken).toBe('mockToken');
-            expect(refreshToken).toBe('mockToken');
-            expect(user).toEqual(mockGoogleUser);
+
+        it('should log in an existing Google user', async () => {
+            (getTokenInfo as jest.Mock).mockResolvedValue({ tokens: "googleTokens", userInfo: mockGoogleData });
+            (getUserByGoogleId as jest.Mock).mockResolvedValue(mockUser);
+            (generateAccessToken as jest.Mock).mockReturnValue('accessToken');
+            (generateRefreshToken as jest.Mock).mockReturnValue('refreshToken');
+
+            const result = await handleGoogleCallback('authCode123');
+
+            expect(getTokenInfo).toHaveBeenCalledWith('authCode123');
+            expect(getUserByGoogleId).toHaveBeenCalledWith('google123');
+            expect(generateAccessToken).toHaveBeenCalledWith(mockUser._id);
+            expect(result).toEqual({
+                accessToken: 'accessToken',
+                refreshToken: 'refreshToken',
+                user: mockUser,
+            });
+        });
+
+        it('should register a new Google user if not found', async () => {
+            (getTokenInfo as jest.Mock).mockResolvedValue({ userInfo: mockGoogleData });
+            (getUserByGoogleId as jest.Mock).mockResolvedValue(null);
+            (createUser as jest.Mock).mockResolvedValue(mockUser);
+
+            const result = await handleGoogleCallback('authCode123');
+
+            expect(createUser).toHaveBeenCalledWith({
+                googleId: 'google123',
+                email: 'google@example.com',
+                username: 'Google User',
+                provider: 'google',
+            });
+            expect(result.user).toEqual(mockUser);
         });
     });
 
-    describe('refresh token', () => {
+
+    describe('refresh access token', () => {
         it('should generate a new access token', async () => {
-            (jwt.verify as jest.Mock).mockReturnValue({ id: '1' });
-            (jwt.sign as jest.Mock).mockReturnValue('newAccessToken');
+            (verifyRefreshToken as jest.Mock).mockReturnValue({ id: '1' });
+            (generateAccessToken as jest.Mock).mockReturnValue('newAccessToken');
 
             const newAccessToken = await refreshAccessToken('validRefreshToken');
 
-            expect(jwt.verify).toHaveBeenCalledWith('validRefreshToken', expect.any(String));
-            expect(jwt.sign).toHaveBeenCalledWith({ id: '1' }, expect.any(String), { expiresIn: '15m' });
+            expect(verifyRefreshToken).toHaveBeenCalledWith('validRefreshToken');
+            expect(generateAccessToken).toHaveBeenCalledWith('1');
             expect(newAccessToken).toBe('newAccessToken');
         });
 
         it('should throw an error for an invalid refresh token', async () => {
-            (jwt.verify as jest.Mock).mockImplementation(() => {
+            (verifyRefreshToken as jest.Mock).mockImplementation(() => {
                 throw new Error('Invalid token');
             });
 
