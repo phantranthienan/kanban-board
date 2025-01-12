@@ -5,25 +5,46 @@ const userSchema = new Schema({
         type: String,
         required: true,
         unique: true,
+        trim: true,
     },
     email: {
         type: String,
         required: true,
         unique: true,
+        lowercase: true,
+        trim: true,
+        index: true,
     }, 
     password: {
         type: String,
-        required: true,
+        required: false,
+    },
+    googleId: {
+        type: String,
+        unique: true,
+        sparse: true,
+    },
+    provider: {
+        type: String,
+        enum: ['local', 'google'],
+        default: 'local',
     },
 });
 
 userSchema.set('toJSON', {
-    transform: (doc, ret) => {
+    transform: (_, ret) => {
         ret.id = ret._id;
         delete ret._id;
         delete ret.__v;
         delete ret.password;
     }
+});
+
+userSchema.pre('save', async function (next) {
+    if (!this.username && this.googleId) {
+        this.username = this.email.split('@')[0];
+    }
+    next();
 });
 
 export type TUser = InferSchemaType<typeof userSchema>;
@@ -38,9 +59,13 @@ export const User = mongoose.model<UserDocument>('User', userSchema);
  * @param {TUser} userData - Data for the new user document.
  * @return {Promise<UserDocument>} The created user document.
  */
-export const createUser = async (userData: TUser): Promise<UserDocument> => {
-    const user = new User(userData);
-    return await user.save();
+export const createUser = async (userData: Partial<TUser>): Promise<UserDocument> => {
+    try {
+        const user = new User(userData);
+        return await user.save();
+    } catch (error) {
+        throw new Error(`Error creating user: ${error}`);
+    }
 }
 
 /**
@@ -49,7 +74,11 @@ export const createUser = async (userData: TUser): Promise<UserDocument> => {
  * @return {Promise<UserDocument | null>} The found user document or null if not found.
  */
 export const getUserById = async (id: string): Promise<UserDocument | null> => {
-    return await User.findById(id);
+    try {
+        return await User.findById(id);
+    } catch (error) {
+        throw new Error(`Error finding user by ID: ${error}`);
+    }
 };
 
 /**
@@ -58,7 +87,11 @@ export const getUserById = async (id: string): Promise<UserDocument | null> => {
  * @return {Promise<UserDocument | null>} The found user document or null if not found.
  */
 export const getUserByUsername = async (username: string): Promise<UserDocument | null> => {
-    return await User.findOne({ username });
+    try {
+        return await User.findOne({ username });
+    } catch (error) {
+        throw new Error(`Error finding user by username: ${error}`);
+    }
 }
 
 /**
@@ -66,9 +99,25 @@ export const getUserByUsername = async (username: string): Promise<UserDocument 
  * @param {string} email - The email of the user to find.
  * @return {Promise<UserDocument | null>} The found user document or null if not found.
  */
-
 export const getUserByEmail = async (email: string): Promise<UserDocument | null> => {
-    return await User.findOne({ email });
+    try {
+        return await User.findOne({ email });
+    } catch (error) {
+        throw new Error(`Error finding user by email: ${error}`);
+    }
+}
+
+/**
+ * Find a user by their google ID.
+ * @param {string} googleId - The google ID of the user to find.
+ * @return {Promise<UserDocument | null>} The found user document or null if not found.
+ */
+export const getUserByGoogleId = async (googleId: string): Promise<UserDocument | null> => {
+    try {
+        return await User.findOne({ googleId });
+    } catch (error) {
+        throw new Error(`Error finding user by google ID: ${error}`);
+    }
 }
 
 /**
@@ -78,8 +127,11 @@ export const getUserByEmail = async (email: string): Promise<UserDocument | null
  * @return {Promise<UserDocument | null>}The updated user document or throws an error if not found.
  */
 export const updateUserById = async (id: string, updateData: Partial<TUser>): Promise<UserDocument | null> => {
-    const user = await User.findByIdAndUpdate(id, updateData, { new: true });
-    return user;
+    try {
+        return await User.findByIdAndUpdate(id, updateData, { new: true });
+    } catch (error) {
+        throw new Error(`Error updating user by ID: ${error}`);
+    }
 };
 
 /**
@@ -88,5 +140,21 @@ export const updateUserById = async (id: string, updateData: Partial<TUser>): Pr
  * @return {Promise<UserDocument | null>} The deleted user document or null if not found.
  */
 export const deleteUserById = async (id: string): Promise<UserDocument | null> => {
-    return await User.findByIdAndDelete(id);
+    try {
+        return await User.findByIdAndDelete(id);
+    } catch (error) {
+        throw new Error(`Error deleting user by ID: ${error}`);
+    }
 };
+
+/**
+ * Delete all users.
+ * @return {Promise<void>} A promise that resolves when all users are deleted.
+ */
+export const deleteAllUsers = async (): Promise<void> => {
+    try {
+        await User.deleteMany({});
+    } catch (error) {
+        throw new Error(`Error deleting all users: ${error}`);
+    }
+}

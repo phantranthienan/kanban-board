@@ -1,5 +1,5 @@
-import express, { Express, Request, Response } from 'express';
 import 'express-async-errors';
+import express, { Express, Response } from 'express';
 import mongoose from 'mongoose';
 import { config } from './config';
 import cors from 'cors';
@@ -54,7 +54,7 @@ const corsOptions = {
 
 // Middlewares
 app.use(helmet());
-app.use(cors(corsOptions)); // Apply the CORS options
+app.use(cors(corsOptions));
 app.use(morgan('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -71,7 +71,7 @@ app.use(limiter);
 
 // Routes
 app.use('/api', router);
-app.use('/health', (req: Request, res: Response) => {
+app.use('/health', (_, res: Response) => {
     res.json({ message: 'Server is healthy' });
 });
 

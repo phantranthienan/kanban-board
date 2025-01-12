@@ -17,6 +17,15 @@ export const registerSchema = z.object({
     message: 'Passwords do not match',
     path: ['confirmPassword'],
 })
+// Simple schema for testing purposes
+export const simpleRegisterSchema = z.object({
+    username: z.string().min(1, { message: 'Username is required' }),
+    email: z.string().email({ message: 'Please enter a valid email address' }),
+    password: z.string().min(1, { message: 'Password is required' }),
+    confirmPassword: z.string().min(1, { message: 'Confirm Password is required' }),
+});
+
+
 
 
 export const loginSchema = z.object({

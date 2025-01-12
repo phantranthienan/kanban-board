@@ -18,7 +18,6 @@ export const registerSchema = z.object({
     path: ['confirmPassword'],
 })
 
-
 export const loginSchema = z.object({
     username: z.string().min(1, { message: 'Username is required' }),
     password: z.string().min(1, { message: 'Password is required' }),
@@ -37,5 +36,3 @@ export const taskSchema = z.object({
         }), 
     subtasks: z.array(z.string()).optional(),
 });
-
-type taskInput = z.infer<typeof taskSchema>;

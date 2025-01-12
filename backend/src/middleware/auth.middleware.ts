@@ -1,6 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import { CustomError } from '../errors';
 import { config } from '../config';
 
 export interface AuthRequest extends Request {
@@ -9,10 +8,12 @@ export interface AuthRequest extends Request {
     };
 }
 
-export const authMiddleware = (req: AuthRequest, res: Response, next: NextFunction) => {
+export const authMiddleware = (req: AuthRequest, res: Response, next: NextFunction): void => {
     const authHeader = req.headers.authorization;
+
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        return next(new CustomError('Access denied. No token provided', 401));
+        res.status(401).json({ message: 'Access denied. No token provided' });
+        return;
     }
 
     const token = authHeader.split(' ')[1];
@@ -22,12 +23,13 @@ export const authMiddleware = (req: AuthRequest, res: Response, next: NextFuncti
         req.user = { id: decoded.id };
         next();
     } catch (error: any) {
-        if (error.name === 'TokenExpiredError') {
-            next(new CustomError('Token has expired', 401));
-        } else if (error.name === 'JsonWebTokenError') {
-            next(new CustomError('Invalid token', 401));
-        } else {
-            next(new CustomError('Failed to authenticate token', 401));
-        }
+        const errorMessage =
+            error.name === 'TokenExpiredError'
+                ? 'Token has expired'
+                : error.name === 'JsonWebTokenError'
+                ? 'Invalid token'
+                : 'Failed to authenticate token';
+
+        res.status(401).json({ message: errorMessage });
     }
 };

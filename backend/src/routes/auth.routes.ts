@@ -1,13 +1,14 @@
 import express from 'express';
-import * as authController from '../controllers/auth.controller';
-import { authMiddleware } from '../middleware/auth.middleware';
+import { register, login, refreshToken, googleLogin } from '../controllers/auth.controller';
 
 const router = express.Router();
 
-router.post('/register', authController.register);
+router.post('/register', register);
 
-router.post('/login', authController.login);
+router.post('/login', login);
 
-router.post('/refresh-token', authController.refreshToken);
+router.post('/refresh-token', refreshToken);
+
+router.post('/goole-login', googleLogin)
 
 export default router;
