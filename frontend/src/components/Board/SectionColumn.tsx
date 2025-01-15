@@ -24,9 +24,9 @@ import TaskItem from './TaskItem';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/AddCircleOutlineOutlined';
 
-import { TSection } from '../../types/sections';
+import { TSection } from '../../types/common/sections';
 import { TaskInput } from '../../utils/zodSchemas';
-import { TTask } from '../../types/tasks';
+import { TTask } from '../../types/common/tasks';
 
 type SectionColumnProps = {
 	section: TSection;

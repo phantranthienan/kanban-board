@@ -36,8 +36,8 @@ import Loading from '../common/Loading';
 import SectionColumn from './SectionColumn';
 import TaskItem from './TaskItem';
 
-import { TSection } from '../../types/sections';
-import { TTask } from '../../types/tasks';
+import { TSection } from '../../types/common/sections';
+import { TTask } from '../../types/common/tasks';
 
 type BoardBodyProps = {
 	boardId: string;

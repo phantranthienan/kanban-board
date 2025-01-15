@@ -23,7 +23,7 @@ import { LoadingButton } from '@mui/lab';
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 
 import { taskSchema, TaskInput } from '../../utils/zodSchemas';
-import { TTask } from '../../types/tasks';
+import { TTask } from '../../types/common/tasks';
 
 type TaskModalProps = {
 	open: boolean;

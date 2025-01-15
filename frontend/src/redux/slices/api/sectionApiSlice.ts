@@ -1,6 +1,19 @@
 import { createApi } from '@reduxjs/toolkit/query/react';
 import { baseQuery } from './baseQuery';
-import { TSection } from '../../../types/sections';
+import {
+	GetSectionsRequest,
+	GetSectionByIdRequest,
+	CreateSectionRequest,
+	UpdateSectionRequest,
+	DeleteSectionRequest,
+	ReorderSectionsRequest,
+	GetSectionsResponse,
+	GetSectionByIdResponse,
+	CreateSectionResponse,
+	UpdateSectionResponse,
+	DeleteSectionResponse,
+	ReorderSectionsResponse,
+} from '../../../types/api/sections';
 
 type SectionTag = { type: 'Section'; id: string | 'LIST' };
 
@@ -10,8 +23,8 @@ export const sectionApi = createApi({
 	tagTypes: ['Section'],
 	endpoints: (builder) => ({
 		// Fetch all sections for a board
-		getSections: builder.query<TSection[], string>({
-			query: (boardId) => `boards/${boardId}/sections`,
+		getSections: builder.query<GetSectionsResponse, GetSectionsRequest>({
+			query: ({ boardId }) => `boards/${boardId}/sections`,
 			providesTags: (result) =>
 				result
 					? [
@@ -24,8 +37,8 @@ export const sectionApi = createApi({
 		}),
 		// Fetch a single section by ID
 		getSectionById: builder.query<
-			TSection,
-			{ boardId: string; sectionId: string }
+			GetSectionByIdResponse,
+			GetSectionByIdRequest
 		>({
 			query: ({ boardId, sectionId }) =>
 				`boards/${boardId}/sections/${sectionId}`, // Include both board and section IDs
@@ -34,15 +47,21 @@ export const sectionApi = createApi({
 			],
 		}),
 		// Create a new section
-		createSection: builder.mutation<TSection, string>({
-			query: (boardId) => ({
+		createSection: builder.mutation<
+			CreateSectionResponse,
+			CreateSectionRequest
+		>({
+			query: ({ boardId }) => ({
 				url: `boards/${boardId}/sections`, // Endpoint for creating a new section
 				method: 'POST',
 			}),
 			invalidatesTags: [{ type: 'Section', id: 'LIST' }], // Invalidate the list to trigger a re-fetch
 		}),
 		// Update an existing section
-		updateSection: builder.mutation<TSection, Partial<TSection>>({
+		updateSection: builder.mutation<
+			UpdateSectionResponse,
+			UpdateSectionRequest
+		>({
 			query: (updatedSection) => ({
 				url: `boards/${updatedSection.board}/sections/${updatedSection.id}`, // Endpoint for updating a section
 				method: 'PUT',
@@ -53,8 +72,8 @@ export const sectionApi = createApi({
 
 		// Delete an existing section
 		deleteSection: builder.mutation<
-			void,
-			{ boardId: string; sectionId: string }
+			DeleteSectionResponse,
+			DeleteSectionRequest
 		>({
 			query: ({ boardId, sectionId }) => ({
 				url: `boards/${boardId}/sections/${sectionId}`, // Endpoint for deleting a section
@@ -67,8 +86,8 @@ export const sectionApi = createApi({
 		}),
 		// Reorder sections
 		reorderSections: builder.mutation<
-			void,
-			{ boardId: string; sections: { id: string; position: number }[] }
+			ReorderSectionsResponse,
+			ReorderSectionsRequest
 		>({
 			query: ({ boardId, sections }) => ({
 				url: `boards/${boardId}/sections/reorder`, // Endpoint for reordering sections

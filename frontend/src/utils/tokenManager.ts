@@ -1,5 +1,6 @@
 export const tokenManager = {
-	getToken: () => localStorage.getItem('token'),
-	setToken: (token: string) => localStorage.setItem('token', token),
-	clearToken: () => localStorage.removeItem('token'),
+	getAccessToken: () => localStorage.getItem('AccessToken'),
+	setAccessToken: (accessToken: string) =>
+		localStorage.setItem('AccessToken', accessToken),
+	clearAccessToken: () => localStorage.removeItem('AccessToken'),
 };

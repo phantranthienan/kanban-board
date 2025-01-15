@@ -10,7 +10,7 @@ import { ThemeProvider } from '@emotion/react';
 import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 
-import ProtectedRoute from './components/common/ProtectedRoute';
+import ProtectedRoute from './components/layouts/ProtectedRoute';
 import AuthLayout from './components/layouts/AuthLayout';
 import AppLayout from './components/layouts/AppLayout';
 import { Home, Login, Register, Board } from './pages';

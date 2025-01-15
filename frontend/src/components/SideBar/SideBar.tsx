@@ -49,12 +49,14 @@ import {
 
 import { arrayMove, SortableContext } from '@dnd-kit/sortable';
 
+import { logout } from '../../services/api/authApi';
+
 import { stringToAvatar } from '../../utils/avatarHelpers';
 
-import { TBoard } from '../../types/boards';
+import { TBoard } from '../../types/common/boards';
 
 const SideBar: React.FC = () => {
-	const { user, logout } = useAuth();
+	const { user, unAuthenticate } = useAuth();
 	const dispatch = useAppDispatch();
 	const navigate = useNavigate();
 	const handleError = useErrorHandler();
@@ -178,6 +180,15 @@ const SideBar: React.FC = () => {
 		});
 	};
 
+	const handleLogout = async () => {
+		try {
+			await logout();
+			unAuthenticate();
+		} catch (error: unknown) {
+			handleError(error);
+		}
+	};
+
 	return (
 		<Drawer
 			// container={document.body}
@@ -215,7 +226,7 @@ const SideBar: React.FC = () => {
 								{user?.username?.toUpperCase()}
 							</Typography>
 						</Stack>
-						<IconButton onClick={logout}>
+						<IconButton onClick={handleLogout}>
 							<LogoutIcon fontSize="inherit" />
 						</IconButton>
 					</Stack>

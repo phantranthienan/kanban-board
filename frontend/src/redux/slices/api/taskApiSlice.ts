@@ -1,6 +1,6 @@
 import { createApi } from '@reduxjs/toolkit/query/react';
 import { baseQuery } from './baseQuery';
-import { TTask } from '../../../types/tasks';
+import { TTask } from '../../../types/common/tasks';
 
 type TaskTag = { type: 'Task'; id: string | 'BOARD' | `SECTION_${string}` };
 

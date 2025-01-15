@@ -1,10 +1,9 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 
 import { showNotification } from '../redux/slices/notificationSlice';
 import { useAppDispatch } from '../hooks/storeHooks';
 import { useErrorHandler } from '../hooks/useErrorHandler';
-import useAuth from '../hooks/useAuth';
 
 import { SubmitHandler, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -13,22 +12,12 @@ import { registerSchema, RegisterInput } from '../utils/zodSchemas';
 
 import { Stack, TextField, Button, Typography, Link } from '@mui/material';
 
-import { useRegisterMutation } from '../redux/slices/api/authApiSlice';
+import { register as registerUser } from '../services/api/authApi';
 
 const Register: React.FC = () => {
 	const dispatch = useAppDispatch();
 	const navigate = useNavigate();
 	const handleError = useErrorHandler();
-	const { isAuthenticated, user } = useAuth();
-
-	// Access the register mutation from RTK Query
-	const [registerUser, { isLoading }] = useRegisterMutation();
-
-	useEffect(() => {
-		if (isAuthenticated && user) {
-			navigate('/', { replace: true });
-		}
-	}, [isAuthenticated, user, navigate]);
 
 	const {
 		register,
@@ -46,14 +35,14 @@ const Register: React.FC = () => {
 
 	const onSubmit: SubmitHandler<RegisterInput> = async (data) => {
 		try {
-			await registerUser(data).unwrap();
+			await registerUser(data);
 			dispatch(
 				showNotification({
 					message: 'Registration successful, please login',
 					type: 'success',
 				}),
 			);
-			navigate('/login');
+			navigate('/login', { replace: true });
 		} catch (error: unknown) {
 			handleError(error);
 		}
@@ -74,6 +63,7 @@ const Register: React.FC = () => {
 			<TextField
 				variant="standard"
 				label="Username"
+				autoComplete="username"
 				fullWidth
 				{...register('username')}
 				error={!!errors.username}
@@ -91,6 +81,7 @@ const Register: React.FC = () => {
 				variant="standard"
 				label="Password"
 				type="password"
+				autoComplete="password"
 				fullWidth
 				{...register('password')}
 				error={!!errors.password}
@@ -100,6 +91,7 @@ const Register: React.FC = () => {
 				variant="standard"
 				label="Confirm Password"
 				type="password"
+				autoComplete="password"
 				fullWidth
 				{...register('confirmPassword')}
 				error={!!errors.confirmPassword}
@@ -108,8 +100,8 @@ const Register: React.FC = () => {
 			<Button
 				type="submit"
 				variant="contained"
-				sx={{ width: '50%' }}
-				disabled={isSubmitting || isLoading} // Disable button during submit or loading
+				fullWidth
+				disabled={isSubmitting} // Disable button during submit or loading
 			>
 				<Typography variant="h6">Register</Typography>
 			</Button>

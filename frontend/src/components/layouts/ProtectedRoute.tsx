@@ -1,15 +1,21 @@
 import React, { useEffect } from 'react';
 import { useNavigate, Outlet } from 'react-router-dom';
+import Loading from '../common/Loading';
 import useAuth from '../../hooks/useAuth';
 
 const ProtectedRoute: React.FC = () => {
-	const { hasToken, isAuthenticated } = useAuth();
+	const { isAuthenticated, isLoading: isAuthenticating } = useAuth();
 	const navigate = useNavigate();
+
 	useEffect(() => {
-		if (!hasToken || !isAuthenticated) {
+		if (!isAuthenticating && !isAuthenticated) {
 			navigate('/login', { replace: true });
 		}
-	}, [hasToken, navigate, isAuthenticated]);
+	}, [isAuthenticated, navigate, isAuthenticating]);
+
+	if (isAuthenticating) {
+		return <Loading fullHeight />;
+	}
 
 	return <Outlet />;
 };

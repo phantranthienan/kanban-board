@@ -1,4 +1,4 @@
-export interface TBoard {
+export type TBoard = {
 	id: string;
 	title: string;
 	icon: string;
@@ -7,4 +7,4 @@ export interface TBoard {
 	position: number;
 	user: string;
 	sections: string[];
-}
+};

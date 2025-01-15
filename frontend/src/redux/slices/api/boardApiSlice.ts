@@ -1,21 +1,34 @@
 import { createApi } from '@reduxjs/toolkit/query/react';
 import { baseQuery } from './baseQuery';
-import { TBoard } from '../../../types/boards';
+import {
+	GetBoardRequest,
+	GetBoardsRequest,
+	CreateBoardRequest,
+	UpdateBoardRequest,
+	DeleteBoardRequest,
+	UpdateBoardsPositionsRequest,
+	GetBoardsResponse,
+	CreateBoardResponse,
+	UpdateBoardResponse,
+	DeleteBoardResponse,
+	GetBoardResponse,
+	UpdateBoardsPositionsResponse,
+} from '../../../types/api/board';
 
 export const boardApi = createApi({
 	reducerPath: 'boardApi',
 	baseQuery: baseQuery,
 	tagTypes: ['Board'],
 	endpoints: (builder) => ({
-		getBoards: builder.query<TBoard[], void>({
+		getBoards: builder.query<GetBoardsResponse, GetBoardsRequest>({
 			query: () => 'boards',
 			providesTags: ['Board'],
 		}),
-		getBoard: builder.query<TBoard, string>({
-			query: (id) => `boards/${id}`,
+		getBoard: builder.query<GetBoardResponse, GetBoardRequest>({
+			query: ({ id }) => `boards/${id}`,
 			providesTags: ['Board'],
 		}),
-		createBoard: builder.mutation<TBoard, Partial<TBoard>>({
+		createBoard: builder.mutation<CreateBoardResponse, CreateBoardRequest>({
 			query: (newBoard) => ({
 				url: 'boards',
 				method: 'POST',
@@ -23,7 +36,7 @@ export const boardApi = createApi({
 			}),
 			invalidatesTags: ['Board'],
 		}),
-		updateBoard: builder.mutation<TBoard, Partial<TBoard>>({
+		updateBoard: builder.mutation<UpdateBoardResponse, UpdateBoardRequest>({
 			query: (updatedBoard) => ({
 				url: `boards/${updatedBoard.id}`,
 				method: 'PUT',
@@ -31,8 +44,8 @@ export const boardApi = createApi({
 			}),
 			invalidatesTags: ['Board'],
 		}),
-		deleteBoard: builder.mutation<void, string>({
-			query: (id) => ({
+		deleteBoard: builder.mutation<DeleteBoardResponse, DeleteBoardRequest>({
+			query: ({ id }) => ({
 				url: `boards/${id}`,
 				method: 'DELETE',
 			}),
@@ -40,15 +53,15 @@ export const boardApi = createApi({
 		}),
 		// Update multiple boards' positions in a single request
 		updateBoardsPositions: builder.mutation<
-			void,
-			{ id: string; position: number }[]
+			UpdateBoardsPositionsResponse,
+			UpdateBoardsPositionsRequest
 		>({
 			query: (boards) => ({
 				url: 'boards/updatePositions',
 				method: 'POST',
 				body: { boards },
 			}),
-			invalidatesTags: [], // Invalidate cached boards to reflect changes
+			invalidatesTags: ['Board'],
 		}),
 	}),
 });

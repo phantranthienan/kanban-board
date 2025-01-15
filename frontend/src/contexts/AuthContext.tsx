@@ -1,28 +1,15 @@
-import React, {
-	createContext,
-	useState,
-	useEffect,
-	useMemo,
-	ReactNode,
-} from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { createContext, useState, useEffect, ReactNode } from 'react';
 
-import {
-	useLoginMutation,
-	useGetUserInfoQuery,
-} from '../redux/slices/api/authApiSlice';
-
-import { TUser } from '../types/users';
-import { LoginInput } from '../utils/zodSchemas';
+import { TUser } from '../types/common/users';
 import { tokenManager } from '../utils/tokenManager';
-import { FetchBaseQueryError } from '@reduxjs/toolkit/query';
+import { getAccessToken, getMyInfo } from '../services/api/authApi';
 
 interface AuthContextProps {
-	hasToken: boolean;
-	isAuthenticated: boolean;
 	user: TUser | null;
-	login: (credentials: LoginInput) => Promise<void>;
-	logout: () => void;
+	isAuthenticated: boolean;
+	isLoading: boolean;
+	authenticate: (user: TUser) => void;
+	unAuthenticate: () => void;
 }
 
 const AuthContext = createContext<AuthContextProps | undefined>(undefined);
@@ -31,59 +18,48 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
 	children,
 }) => {
 	const [user, setUser] = useState<TUser | null>(null);
+	const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+	const [isLoading, setIsLoading] = useState<boolean>(true);
 
-	const hasToken = !!tokenManager.getToken();
-	const isAuthenticated = !!user;
+	const initializeAuth = async () => {
+		try {
+			await getAccessToken();
+			const user = await getMyInfo();
+			authenticate(user);
+		} catch (error: unknown) {
+			console.error(error);
+			unAuthenticate();
+		} finally {
+			setIsLoading(false);
+		}
+	};
 
-	const navigate = useNavigate();
+	useEffect(() => {
+		initializeAuth();
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, []);
 
-	const {
-		data: userInfo,
-		error,
-		refetch,
-	} = useGetUserInfoQuery(undefined, {
-		skip: !hasToken && !isAuthenticated,
-		refetchOnReconnect: true,
-	});
-
-	const [loginMutation] = useLoginMutation();
-
-	const login = async (credentials: LoginInput) => {
-		const { token, user } = await loginMutation(credentials).unwrap();
+	const authenticate = (user: TUser) => {
 		setUser(user);
-		tokenManager.setToken(token);
-		navigate('/boards', { replace: true });
+		setIsAuthenticated(true);
 	};
 
-	const logout = () => {
-		tokenManager.clearToken();
+	const unAuthenticate = () => {
 		setUser(null);
-		navigate('/login', { replace: true });
+		setIsAuthenticated(false);
+		tokenManager.clearAccessToken();
 	};
-
-	useEffect(() => {
-		if (!user && hasToken) {
-			refetch();
-		}
-	}, [hasToken, refetch, user]);
-
-	useEffect(() => {
-		if (userInfo) {
-			setUser(userInfo);
-		} else if ((error as FetchBaseQueryError)?.status === 401) {
-			logout();
-		}
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [userInfo, error, hasToken]);
-
-	const authContextValue = useMemo(
-		() => ({ hasToken, isAuthenticated, user, login, logout }),
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-		[hasToken, isAuthenticated, user],
-	);
 
 	return (
-		<AuthContext.Provider value={authContextValue}>
+		<AuthContext.Provider
+			value={{
+				user,
+				isAuthenticated,
+				isLoading,
+				authenticate,
+				unAuthenticate,
+			}}
+		>
 			{children}
 		</AuthContext.Provider>
 	);

@@ -1,9 +1,9 @@
 import { TTask } from './tasks';
 
-export interface TSection {
+export type TSection = {
 	id: string;
 	title: string;
 	position: number;
 	board: string;
 	tasks: TTask[];
-}
+};

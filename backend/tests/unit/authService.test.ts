@@ -106,7 +106,7 @@ describe('Auth Service', () => {
 
     describe('handleGoogleCallback', () => {
         const mockGoogleData = {
-            id: 'google123',
+            sub: 'google123',
             email: 'google@example.com',
             name: 'Google User',
         };
@@ -145,7 +145,7 @@ describe('Auth Service', () => {
             expect(createUser).toHaveBeenCalledWith({
                 googleId: 'google123',
                 email: 'google@example.com',
-                username: 'Google User',
+                username: 'google',
                 provider: 'google',
             });
             expect(result.user).toEqual(mockUser);

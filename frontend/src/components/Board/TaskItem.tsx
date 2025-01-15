@@ -15,7 +15,7 @@ import { Box, Typography, IconButton, Menu, MenuItem } from '@mui/material';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import TaskModal from './TaskModal';
 
-import { TTask } from '../../types/tasks';
+import { TTask } from '../../types/common/tasks';
 import { TaskInput } from '../../utils/zodSchemas';
 
 type TaskItemProps = {

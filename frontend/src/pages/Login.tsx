@@ -5,22 +5,30 @@ import { showNotification } from '../redux/slices/notificationSlice';
 import { useAppDispatch } from '../hooks/storeHooks';
 import { useErrorHandler } from '../hooks/useErrorHandler';
 
+import { login as loginUser, googleLogin } from '../services/api/authApi';
+
 import { SubmitHandler, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 
 import { loginSchema, LoginInput } from '../utils/zodSchemas';
 
-import { Stack, TextField, Typography, Link } from '@mui/material';
+import {
+	Stack,
+	TextField,
+	Typography,
+	Link,
+	Divider,
+	Button,
+} from '@mui/material';
 import { LoadingButton } from '@mui/lab';
-
+import { GoogleIcon } from '../components/common/GoogleIcon';
 import useAuth from '../hooks/useAuth';
 
 const Login: React.FC = () => {
 	const dispatch = useAppDispatch();
 	const navigate = useNavigate();
 	const handleError = useErrorHandler();
-
-	const { login, isAuthenticated, user } = useAuth();
+	const { authenticate } = useAuth();
 
 	const {
 		register,
@@ -34,22 +42,22 @@ const Login: React.FC = () => {
 		resolver: zodResolver(loginSchema),
 	});
 
-	const onSubmit: SubmitHandler<LoginInput> = async (data) => {
+	const onSubmit: SubmitHandler<LoginInput> = async (loginData) => {
 		try {
-			await login(data);
+			const data = await loginUser(loginData);
+			authenticate(data.user);
 			dispatch(
 				showNotification({ message: 'Login successful', type: 'success' }),
 			);
+			navigate('/boards', { replace: true });
 		} catch (error: unknown) {
 			handleError(error);
 		}
 	};
 
-	useEffect(() => {
-		if (isAuthenticated && user) {
-			navigate('/', { replace: true });
-		}
-	}, [isAuthenticated, user, navigate]);
+	const handleGoogleLogin = async () => {
+		googleLogin();
+	};
 
 	return (
 		<Stack
@@ -66,6 +74,7 @@ const Login: React.FC = () => {
 			<TextField
 				variant="standard"
 				label="Username"
+				autoComplete="username"
 				fullWidth
 				{...register('username')}
 				error={!!errors.username}
@@ -75,6 +84,7 @@ const Login: React.FC = () => {
 				variant="standard"
 				label="Password"
 				type="password"
+				autoComplete="password"
 				fullWidth
 				{...register('password')}
 				error={!!errors.password}
@@ -83,7 +93,7 @@ const Login: React.FC = () => {
 			<LoadingButton
 				type="submit"
 				variant="contained"
-				sx={{ width: '50%' }}
+				fullWidth
 				loading={isSubmitting}
 			>
 				<Typography variant="h6">Login</Typography>
@@ -95,6 +105,17 @@ const Login: React.FC = () => {
 					Register here
 				</Link>
 			</Typography>
+
+			<Divider>or</Divider>
+
+			<Button
+				fullWidth
+				variant="outlined"
+				onClick={handleGoogleLogin}
+				startIcon={<GoogleIcon />}
+			>
+				Sign in with Google
+			</Button>
 		</Stack>
 	);
 };
