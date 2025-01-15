@@ -1,4 +1,4 @@
-import { UserDocument, TUser, createUser, getUserByEmail, getUserByUsername, getUserByGoogleId } from '../models/user.model';
+import { UserDocument, TUser, createUser, getUserByEmail, getUserByUsername, getUserByGoogleId, getUserById } from '../models/user.model';
 import { CustomError } from '@/errors';
 import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from '@/utils/token.util';
 import { comparePassword, encryptPassword } from '@/utils/password.util';
@@ -57,14 +57,14 @@ export const getGoogleAuthUrl = (): string => {
  */
 export const handleGoogleCallback = async (code: string) => {
     const { tokens: _, userInfo } = await getTokenInfo(code);
-    const { id: googleId, email, name } = userInfo;
+    const { sub: googleId, email } = userInfo;
 
     let user = await getUserByGoogleId(googleId) || await getUserByEmail(email);
     if (!user) {
         user = await createUser({
             googleId,
             email,
-            username: name || email.split('@')[0],
+            username: email.split('@')[0],
             provider: 'google',
         });
     }
@@ -86,4 +86,16 @@ export const refreshAccessToken = async (refreshToken: string): Promise<string> 
     } catch (err) {
         throw new CustomError('Invalid or expired refresh token', 401);
     }
+};
+
+/**
+ * Get user information by ID.
+ */
+export const getMyInfo = async (userId: string): Promise<UserDocument> => {
+    const user = await getUserById(userId);
+    if (!user) {
+        throw new CustomError('User not found', 404);
+    }
+
+    return user;
 };

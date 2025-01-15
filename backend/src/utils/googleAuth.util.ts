@@ -2,14 +2,13 @@ import { OAuth2Client } from "google-auth-library";
 import config from "@/config";
 
 export type GoogleUserInfo = {
-    id: string;
-    email: string;
-    verified_email: boolean;
+    sub: string;
     name: string;
     given_name: string;
     family_name: string;
     picture: string;
-    locale: string;
+    email: string;
+    email_verified: boolean;
 }
 
 const client = new OAuth2Client(
@@ -39,8 +38,9 @@ export const getTokenInfo = async (code: string) => {
     const { tokens } = await client.getToken(code); // Exchange code for tokens
     client.setCredentials(tokens); // Set tokens for subsequent requests
 
-    const response = await client.request<{ data: GoogleUserInfo }>({
+    const response = await client.request<GoogleUserInfo>({
         url: 'https://www.googleapis.com/oauth2/v3/userinfo',
     });
-    return { tokens, userInfo: response.data.data };
+
+    return { tokens, userInfo: response.data };
 };

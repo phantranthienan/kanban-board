@@ -25,7 +25,7 @@ export const authMiddleware = (req: AuthRequest, res: Response, next: NextFuncti
     } catch (error: any) {
         const errorMessage =
             error.name === 'TokenExpiredError'
-                ? 'Token has expired'
+                ? 'Token expired'
                 : error.name === 'JsonWebTokenError'
                 ? 'Invalid token'
                 : 'Failed to authenticate token';

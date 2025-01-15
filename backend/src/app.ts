@@ -1,7 +1,7 @@
 import 'express-async-errors';
 import express, { Express, Response } from 'express';
 import mongoose from 'mongoose';
-import config from '@/config';
+import config from './config';
 import cors from 'cors';
 import morgan from 'morgan';
 import cookieParser from 'cookie-parser';

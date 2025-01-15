@@ -110,20 +110,34 @@ describe('Auth Route', () => {
         });
     });
 
+    describe('POST /api/auth/logout', () => {
+        it('should clear the refresh token cookie on logout', async () => {
+            // Simulate setting a refresh token cookie
+            const refreshToken = 'mockRefreshToken';
+            const response = await request(app)
+                .post('/api/auth/logout')
+                .set('Cookie', [`refreshToken=${refreshToken}`]);
+    
+            expect(response.status).toBe(200);
+            expect(response.body.message).toBe('Logged out successfully');
+        });
+    });
+    
+
     describe('POST /api/auth/refresh-token', () => {
         it('should refresh the access token successfully', async () => {
           // Generate a refresh token for a fake user
             const refreshToken = generateRefreshToken('user123');
             const response = await request(app)
-                .post('/api/auth/refresh-token')
+                .get('/api/auth/access-token')
                 .set('Cookie', [`refreshToken=${refreshToken}`]); // Send refresh token as cookie
           
             expect(response.status).toBe(200); // HTTP 200 OK
-            expect(response.body.newAccessToken).toBeDefined(); // Ensure a new access token is returned
+            expect(response.body.accessToken).toBeDefined(); // Ensure a new access token is returned
         });
 
         it('should return 401 if refresh token is not provided in cookies', async () => {
-            const response = await request(app).post('/api/auth/refresh-token');
+            const response = await request(app).get('/api/auth/access-token');
 
             expect(response.status).toBe(401); // HTTP 401 Unauthorized
             expect(response.body.message).toBe('Refresh token not provided');
@@ -131,7 +145,7 @@ describe('Auth Route', () => {
     
         it('should return 401 for an invalid refresh token', async () => {
             const response = await request(app)
-                .post('/api/auth/refresh-token')
+                .get('/api/auth/access-token')
                 .set('Cookie', ['refreshToken=invalidToken']); // Send an invalid token
             
             expect(response.status).toBe(401); // HTTP 401 Unauthorized

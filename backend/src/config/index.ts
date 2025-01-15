@@ -12,6 +12,7 @@ const config = {
         : process.env.NODE_ENV === 'test'
         ? process.env.MONGODB_URI_TEST as string
         : process.env.MONGODB_URI_DEV as string,
+    FRONTEND_URL: process.env.FRONTEND_URL as string,
     GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID as string,
     GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET as string,
     GOOGLE_REDIRECT_URI: process.env.GOOGLE_REDIRECT_URI as string,

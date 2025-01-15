@@ -1,12 +1,15 @@
 import express from 'express';
-import { register, login, refreshToken, googleAuthRedirect, googleCallbackHandler } from '@/controllers/auth.controller';
+import { register, login, getAccessToken, googleAuthRedirect, googleCallbackHandler, logout, getMyInfo } from '@/controllers/auth.controller';
+import { authMiddleware } from '@/middleware/auth.middleware';
 
 const router = express.Router();
 
 // Local authentication routes
 router.post('/register', register);
 router.post('/login', login);
-router.post('/refresh-token', refreshToken);
+router.post('/logout', logout)
+router.get('/access-token', getAccessToken);
+router.get('/me', authMiddleware, getMyInfo);
 
 // Google authentication routes
 router.get('/google/login', googleAuthRedirect);

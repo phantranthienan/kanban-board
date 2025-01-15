@@ -2,6 +2,8 @@ import { Request, Response } from 'express';
 import { registerSchema, loginSchema } from '@/utils/validators/authSchema';
 import * as authService from '@/services/auth.service';
 import { CustomError } from '@/errors';
+import config from '@/config';
+import { AuthRequest } from '@/middleware/auth.middleware';
 
 /**
  * Register a new user.
@@ -27,6 +29,7 @@ export const login = async (req: Request, res: Response) => {
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict',
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+        path: '/api/auth',
     });
 
     res.status(200).json({ accessToken, user });
@@ -35,14 +38,14 @@ export const login = async (req: Request, res: Response) => {
 /**
  * Refresh access token.
  */
-export const refreshToken = async (req: Request, res: Response) => {
+export const getAccessToken = async (req: Request, res: Response) => {
     const { refreshToken } = req.cookies;
     if (!refreshToken) {
         throw new CustomError('Refresh token not provided', 401);
     }
 
-    const newAccessToken = await authService.refreshAccessToken(refreshToken);
-    res.status(200).json({ newAccessToken });
+    const accessToken = await authService.refreshAccessToken(refreshToken);
+    res.status(200).json({ accessToken });
 };
 
 
@@ -58,14 +61,48 @@ export const googleAuthRedirect = (_req: Request, res: Response) => {
  * Handle Google OAuth2 Callback
 */
 export const googleCallbackHandler = async (req: Request, res: Response) => {
-    const { code } = req.query;
-    if (!code) throw new CustomError('Authorization code is required', 400);
-    const { accessToken, refreshToken, user } = await authService.handleGoogleCallback(code as string);
-    res.cookie('refreshToken', refreshToken, {
+    const code = req.query.code;
+    if (!code) {
+        res.redirect(config.FRONTEND_URL);
+        throw new CustomError('Authorization code is required', 400);
+    };
+    try {
+        const { accessToken, refreshToken, user } = await authService.handleGoogleCallback(code as string);
+        console.log(accessToken, refreshToken, user);
+        res.cookie('refreshToken', refreshToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict',
+            maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+            path: '/api/auth',
+        });
+
+        res.redirect(config.FRONTEND_URL);
+    } catch (error) {
+        console.error(error);
+        res.redirect(config.FRONTEND_URL);
+    }
+};
+
+/**
+ * Logout user.
+ */
+export const logout = async (_req: Request, res: Response) => {
+    res.clearCookie('refreshToken', {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict',
-        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+        path: '/api/auth',
     });
-    res.status(200).json({ accessToken, user });
+    res.status(200).send({ message: 'Logged out successfully' });
+}
+
+/**
+ * Get user's information.
+ */
+export const getMyInfo = async (req: AuthRequest, res: Response) => {
+    const { id } = req.user!;
+    const user = await authService.getMyInfo(id);
+    if (!user) throw new CustomError('User not found', 404);
+    res.status(200).json(user);
 };
