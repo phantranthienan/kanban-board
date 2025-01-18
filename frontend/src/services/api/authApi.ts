@@ -1,7 +1,6 @@
 import axios from './axiosConfig';
 import {
 	GetAccessTokenResponse,
-	GetMeRequest,
 	GetMeResponse,
 	LoginRequest,
 	LoginResponse,

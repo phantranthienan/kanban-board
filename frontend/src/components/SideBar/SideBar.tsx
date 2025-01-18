@@ -212,7 +212,7 @@ const SideBar: React.FC = () => {
 				}}
 			>
 				{/* User Profile and Logout Button */}
-				<ListItemButton>
+				<ListItem>
 					<Stack
 						direction="row"
 						justifyContent="space-between"
@@ -222,7 +222,10 @@ const SideBar: React.FC = () => {
 					>
 						<Stack direction="row" alignItems="center" spacing={1}>
 							{user?.username && <Avatar {...stringToAvatar(user.username)} />}
-							<Typography variant="body1">
+							<Typography
+								variant="body1"
+								sx={{ width: '100px', overflow: 'hidden' }}
+							>
 								{user?.username?.toUpperCase()}
 							</Typography>
 						</Stack>
@@ -230,12 +233,12 @@ const SideBar: React.FC = () => {
 							<LogoutIcon fontSize="inherit" />
 						</IconButton>
 					</Stack>
-				</ListItemButton>
+				</ListItem>
 
 				<Divider />
 
 				{/* Favorite Boards Section */}
-				<ListItemButton onClick={() => setShowFavorites((prev) => !prev)}>
+				<ListItem onClick={() => setShowFavorites((prev) => !prev)}>
 					<Box
 						sx={{
 							display: 'flex',
@@ -262,7 +265,7 @@ const SideBar: React.FC = () => {
 							)}
 						</IconButton>
 					</Box>
-				</ListItemButton>
+				</ListItem>
 
 				{/* Favorite Boards */}
 				<Box

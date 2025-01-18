@@ -12,8 +12,8 @@ import {
 
 import { Box, Divider } from '@mui/material';
 import Loading from '../components/common/Loading';
-import BoardHeader from '../components/Board/BoardHeader';
-import BoardBody from '../components/Board/BoardBody';
+import BoardHeader from '../components/BoardHeader/BoardHeader';
+import BoardBody from '../components/BoardBody/BoardBody';
 
 const Board: React.FC = () => {
 	const { boardId } = useParams();
@@ -25,7 +25,7 @@ const Board: React.FC = () => {
 		data: board,
 		isLoading: isBoardLoading,
 		isSuccess: isBoardSuccess,
-	} = useGetBoardQuery(boardId as string);
+	} = useGetBoardQuery({ id: boardId as string });
 	const [updateBoard] = useUpdateBoardMutation();
 	const [deleteBoard] = useDeleteBoardMutation();
 
@@ -51,7 +51,7 @@ const Board: React.FC = () => {
 
 	const handleDeleteBoard = async () => {
 		if (boardId) {
-			await deleteBoard(boardId).unwrap();
+			await deleteBoard({ id: boardId }).unwrap();
 			dispatch(
 				showNotification({
 					message: 'Board deleted',

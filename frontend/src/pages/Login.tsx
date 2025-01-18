@@ -98,7 +98,6 @@ const Login: React.FC = () => {
 			>
 				<Typography variant="h6">Login</Typography>
 			</LoadingButton>
-
 			<Typography>
 				{"Don't have an account yet? "}
 				<Link component={RouterLink} to="/register" underline="hover">
@@ -106,15 +105,14 @@ const Login: React.FC = () => {
 				</Link>
 			</Typography>
 
-			<Divider>or</Divider>
-
+			<Divider sx={{ width: '100%', borderColor: 'white' }}>OR</Divider>
 			<Button
 				fullWidth
 				variant="outlined"
 				onClick={handleGoogleLogin}
 				startIcon={<GoogleIcon />}
 			>
-				Sign in with Google
+				<Typography variant="h6">Login with Google</Typography>
 			</Button>
 		</Stack>
 	);

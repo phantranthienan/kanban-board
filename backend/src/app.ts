@@ -71,7 +71,7 @@ app.use(limiter);
 
 // Routes
 app.use('/api', router);
-app.use('/health', (_, res: Response) => {
+app.use('/api/health', (_, res: Response) => {
     res.json({ message: 'Server is healthy' });
 });
 
