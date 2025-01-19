@@ -20,9 +20,11 @@ services:
       dockerfile: Dockerfile.dev
     image: kanban/frontend:latest
     ports:
-      - "5173:5173"
+      - "5173"
     env_file:
       - ../../frontend/.env.development
+    environment:
+      - VITE_API_URL=https://localhost/api
     # volumes:
     #   - ../../frontend:/usr/src/app
     #   - ../../frontend/node_modules:/usr/src/app/node_modules
@@ -37,12 +39,14 @@ services:
       dockerfile: Dockerfile.dev
     image: kanban/backend:latest
     ports:
-      - "3000:3000"
+      - "3000"
     env_file:
       - ../../backend/.env
     environment:
       - MONGODB_URI_DEV=mongodb://root:qwerty@database:27017/kanban?authSource=admin
-      - CORS_ORIGIN=http://host.docker.internal:5173
+      - CORS_ORIGIN=https://localhost
+      - FRONTEND_URL=https://localhost
+      - GOOGLE_REDIRECT_URI=https://localhost/api/auth/google/callback
     # volumes:
     #   - ../../backend:/usr/src/app
     #   - ../../backend/node_modules:/usr/src/app/node_modules

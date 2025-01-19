@@ -1,4 +1,11 @@
-$TLS_DIR = "../tls"
+# PowerShell script to generate self-signed TLS certificates
+
+# Resolve script directory and project root
+$SCRIPT_DIR = Split-Path -Parent $MyInvocation.MyCommand.Path
+$PROJECT_ROOT = Join-Path $SCRIPT_DIR "../.."
+
+# Define directories and filenames
+$TLS_DIR = "$PROJECT_ROOT/infrastructure/tls"
 $CERT_FILE = "$TLS_DIR\certificate.crt"
 $KEY_FILE = "$TLS_DIR\private.key"
 
@@ -13,6 +20,7 @@ openssl req -x509 -nodes -days 365 -newkey rsa:2048 `
     -out $CERT_FILE `
     -subj "/CN=localhost"
 
+# Output success message
 Write-Host "Certificate generated:"
 Write-Host "Certificate: $CERT_FILE"
 Write-Host "Key: $KEY_FILE"
