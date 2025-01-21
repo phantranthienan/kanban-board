@@ -49,7 +49,7 @@ jobs:
   deploy-backend:
     needs: test-backend
     runs-on: ubuntu-latest
-
+    environment: production
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
@@ -73,7 +73,7 @@ jobs:
   build-and-deploy-frontend:
     needs: deploy-backend
     runs-on: ubuntu-latest
-
+    environment: production
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
