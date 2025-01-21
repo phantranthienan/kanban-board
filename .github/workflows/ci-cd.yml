@@ -10,7 +10,7 @@ on:
 
 jobs:
   # Step 1: Run Tests for Backend
-  test:
+  test-backend:
     runs-on: ubuntu-latest
 
     steps:
