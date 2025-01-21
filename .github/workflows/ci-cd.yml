@@ -13,7 +13,7 @@ jobs:
   # Step 1: Run Tests for Backend
   test-backend:
     runs-on: ubuntu-latest
-
+    environment: production
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -22,17 +22,12 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: '18'
-          
-      - name: Debug MongoDB URI
+
+      - name: Verify MongoDB URI
         env:
           MONGODB_URI_TEST: ${{ secrets.MONGODB_URI_TEST }}
         run: |
-          if [ -z "$MONGODB_URI_TEST" ]; then
-            echo "MONGODB_URI_TEST is not set."
-            exit 1
-          else
-            echo "MONGODB_URI_TEST is set."
-          fi
+          echo "First 10 characters of MONGODB_URI_TEST: ${MONGODB_URI_TEST:0:10}[REDACTED]"
       
       - name: Install dependencies
         working-directory: backend
