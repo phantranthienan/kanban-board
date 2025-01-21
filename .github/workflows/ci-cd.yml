@@ -56,6 +56,11 @@ jobs:
 
       - name: Install Railway CLI
         run: npm install -g @railway/cli
+
+      - name: Log in to Railway
+        env:
+          RAILWAY_API_TOKEN: ${{ secrets.RAILWAY_API_TOKEN }}
+        run: railway login --token $RAILWAY_API_TOKEN
       
       - name: Link Railway Project
         run: |
@@ -64,8 +69,6 @@ jobs:
 
       - name: Deploy Backend
         working-directory: backend
-        env:
-          RAILWAY_API_TOKEN: ${{ secrets.RAILWAY_API_TOKEN }}
         run: railway up
 
       - name: Get Backend URL
@@ -85,6 +88,11 @@ jobs:
 
       - name: Install Railway CLI
         run: npm install -g @railway/cli
+
+      - name: Log in to Railway
+        env:
+          RAILWAY_API_TOKEN: ${{ secrets.RAILWAY_API_TOKEN }}
+        run: railway login --token $RAILWAY_API_TOKEN
 
       - name: Link Railway Project
         run: |
