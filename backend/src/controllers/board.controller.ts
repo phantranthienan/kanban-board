@@ -76,9 +76,9 @@ export const deleteBoard = async (req: AuthRequest, res: Response) => {
  * @param {Request} req - Express request object containing board positions.
  * @param {Response} res - Express response object.
  */
-export const updateBoardPositions = async (req: AuthRequest, res: Response) => {
+export const reorderBoards = async (req: AuthRequest, res: Response) => {
     const userId = req.user!.id;
     const boards = req.body.boards;
-    await boardService.updateBoardPositions(userId, boards);
+    await boardService.reorderBoards(userId, boards);
     res.status(200).send();
 };

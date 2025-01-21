@@ -6,13 +6,13 @@ import {
 	CreateBoardRequest,
 	UpdateBoardRequest,
 	DeleteBoardRequest,
-	UpdateBoardsPositionsRequest,
+	ReorderBoardsRequest,
 	GetBoardsResponse,
 	CreateBoardResponse,
 	UpdateBoardResponse,
 	DeleteBoardResponse,
 	GetBoardResponse,
-	UpdateBoardsPositionsResponse,
+	ReorderBoardsResponse,
 } from '../../../types/api/board';
 
 export const boardApi = createApi({
@@ -52,9 +52,9 @@ export const boardApi = createApi({
 			invalidatesTags: ['Board'],
 		}),
 		// Update multiple boards' positions in a single request
-		updateBoardsPositions: builder.mutation<
-			UpdateBoardsPositionsResponse,
-			UpdateBoardsPositionsRequest
+		reorderBoards: builder.mutation<
+			ReorderBoardsResponse,
+			ReorderBoardsRequest
 		>({
 			query: (boards) => ({
 				url: 'boards/updatePositions',
@@ -72,5 +72,5 @@ export const {
 	useUpdateBoardMutation,
 	useDeleteBoardMutation,
 	useGetBoardQuery,
-	useUpdateBoardsPositionsMutation,
+	useReorderBoardsMutation,
 } = boardApi;

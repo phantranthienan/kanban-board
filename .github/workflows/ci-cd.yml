@@ -1,0 +1,90 @@
+name: CI/CD pipeline
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  # Step 1: Run Tests for Backend
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+      
+      - name: Install dependencies
+        working-directory: backend
+        run: npm install
+      
+      - name: Run Tests
+        working-directory: backend
+        env:
+          MONGODB_URI_TEST: ${{ secrets.TEST_DATABASE_URL }}
+        run: npm test
+
+   # Step 2: Deploy Backend
+  deploy-backend:
+    needs: test-backend
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Install Railway CLI
+        run: npm install -g railway
+
+      - name: Deploy Backend to Railway
+        env:
+          RAILWAY_API_TOKEN: ${{ secrets.RAILWAY_API_TOKEN }}
+          RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
+        run: railway up --project $RAILWAY_PROJECT_ID --directory backend --service backend-service
+
+      - name: Get Backend URL
+        env:
+          RAILWAY_API_TOKEN: ${{ secrets.RAILWAY_API_TOKEN }}
+          RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
+        run: echo "BACKEND_URL=$(railway status --json | jq -r '.services[] | select(.name == \"backend-service\") | .url')" >> $GITHUB_ENV
+  
+  # Step 3: Build and Deploy Frontend
+  build-and-deploy-frontend:
+    needs: deploy-backend
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Install Railway CLI
+        run: npm install -g railway
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install Dependencies
+        working-directory: frontend
+        run: npm install
+
+      - name: Build Frontend with Backend URL
+        working-directory: frontend
+        env:
+          VITE_API_URL: ${{ env.BACKEND_URL }}
+        run: npm run build
+
+      - name: Deploy Frontend to Railway
+        env:
+          RAILWAY_API_TOKEN: ${{ secrets.RAILWAY_API_TOKEN }}
+          RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
+        run: railway up --project $RAILWAY_PROJECT_ID --directory frontend --service frontend-service

@@ -45,8 +45,9 @@ type BoardBodyProps = {
 
 const BoardBody: React.FC<BoardBodyProps> = ({ boardId }) => {
 	// ======= QUERIES =======
-	const { data: sections, isLoading: sectionsLoading } =
-		useGetSectionsQuery(boardId);
+	const { data: sections, isLoading: sectionsLoading } = useGetSectionsQuery({
+		boardId,
+	});
 	const { data: tasks, isLoading: tasksLoading } =
 		useGetTasksOfBoardQuery(boardId);
 
@@ -64,10 +65,6 @@ const BoardBody: React.FC<BoardBodyProps> = ({ boardId }) => {
 	// Track the item being dragged for DragOverlay
 	const [activeSection, setActiveSection] = useState<TSection | null>(null);
 	const [activeTask, setActiveTask] = useState<TTask | null>(null);
-
-	// Store original location for tasks to finalize cross-section in handleDragEnd
-	// const [originSection, setOriginSection] = useState<string | null>(null);
-	// const [originPosition, setOriginPosition] = useState<number | null>(null);
 
 	// For reverting on error if needed (optional)
 	const originalTasksRef = useRef<Record<string, TTask[]> | null>(null);
@@ -122,7 +119,7 @@ const BoardBody: React.FC<BoardBodyProps> = ({ boardId }) => {
 	// ======= CREATE NEW SECTION =======
 	const handleCreateSection = async () => {
 		try {
-			await createSection(boardId).unwrap();
+			await createSection({ boardId }).unwrap();
 			dispatch(
 				showNotification({ message: 'Section created', type: 'success' }),
 			);
@@ -168,8 +165,6 @@ const BoardBody: React.FC<BoardBodyProps> = ({ boardId }) => {
 		} else if (dragItem.type === 'task') {
 			const task = dragItem.task as TTask;
 			setActiveTask(task);
-			// setOriginSection(task.section);
-			// setOriginPosition(task.position);
 		}
 	};
 
@@ -339,8 +334,6 @@ const BoardBody: React.FC<BoardBodyProps> = ({ boardId }) => {
 				revertTasks();
 			} finally {
 				originalTasksRef.current = null;
-				// setOriginSection(null);
-				// setOriginPosition(null);
 			}
 		}
 	};

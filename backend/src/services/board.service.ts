@@ -106,7 +106,7 @@ export const deleteAndReorderBoards = async (
  * @param {string[]} boardIds - An array of board IDs in the order they should be positioned.
  * @return {Promise<BoardDocument[]>} An array of the updated board documents.
  */
-export const updateBoardPositions = async (userId: string, boards: {id: string, position: number}[]): Promise<void> => {
+export const reorderBoards = async (userId: string, boards: {id: string, position: number}[]): Promise<void> => {
     await bulkUpdatePositions(userId, boards);
 };
     

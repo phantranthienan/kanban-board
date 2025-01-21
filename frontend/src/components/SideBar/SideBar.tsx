@@ -6,7 +6,7 @@ import {
 	useGetBoardsQuery,
 	useUpdateBoardMutation,
 	useCreateBoardMutation,
-	useUpdateBoardsPositionsMutation,
+	useReorderBoardsMutation,
 } from '../../redux/slices/api/boardApiSlice';
 import { showNotification } from '../../redux/slices/notificationSlice';
 import { useAppDispatch } from '../../hooks/storeHooks';
@@ -15,7 +15,6 @@ import {
 	Drawer,
 	List,
 	ListItem,
-	ListItemButton,
 	IconButton,
 	Typography,
 	Box,
@@ -64,7 +63,7 @@ const SideBar: React.FC = () => {
 	const { data: boardsData, isSuccess, isLoading } = useGetBoardsQuery();
 	const [updateBoard] = useUpdateBoardMutation();
 	const [createBoard] = useCreateBoardMutation();
-	const [updateBoardsPositions] = useUpdateBoardsPositionsMutation();
+	const [reorderBoards] = useReorderBoardsMutation();
 
 	const [boards, setBoards] = useState<TBoard[]>([]);
 	const [initialBoards, setInitialBoards] = useState<TBoard[]>([]);
@@ -147,7 +146,7 @@ const SideBar: React.FC = () => {
 				id: board.id,
 				position: index,
 			}));
-			await updateBoardsPositions(boardsToUpdate); // Call your bulk API here
+			await reorderBoards(boardsToUpdate); // Call your bulk API here
 		} catch (error) {
 			handleError(error);
 			setBoards(initialBoards); // Reset to initial state
