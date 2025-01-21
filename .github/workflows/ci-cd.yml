@@ -57,23 +57,15 @@ jobs:
       - name: Install Railway CLI
         run: npm install -g @railway/cli
 
-      - name: Log in to Railway
-        env:
-          RAILWAY_API_TOKEN: ${{ secrets.RAILWAY_API_TOKEN }}
-        run: railway login --token $RAILWAY_API_TOKEN
-      
-      - name: Link Railway Project
-        run: |
-          echo "Linking project..."
-          railway link ${{ secrets.RAILWAY_PROJECT_ID }}
-
       - name: Deploy Backend
         working-directory: backend
-        run: railway up
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        run: railway up --service backend-service
 
       - name: Get Backend URL
         env:
-          RAILWAY_API_TOKEN: ${{ secrets.RAILWAY_API_TOKEN }}
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
         run: |
           echo "BACKEND_URL=$(railway status --json | jq -r '.services[] | select(.name == \"backend-service\") | .url')" >> $GITHUB_ENV
   
@@ -88,16 +80,6 @@ jobs:
 
       - name: Install Railway CLI
         run: npm install -g @railway/cli
-
-      - name: Log in to Railway
-        env:
-          RAILWAY_API_TOKEN: ${{ secrets.RAILWAY_API_TOKEN }}
-        run: railway login --token $RAILWAY_API_TOKEN
-
-      - name: Link Railway Project
-        run: |
-          echo "Linking project..."
-          railway link ${{ secrets.RAILWAY_PROJECT_ID }}
 
       - name: Set up Node.js
         uses: actions/setup-node@v3
@@ -117,5 +99,5 @@ jobs:
       - name: Deploy Frontend
         working-directory: frontend
         env:
-          RAILWAY_API_TOKEN: ${{ secrets.RAILWAY_API_TOKEN }}
-        run: railway up
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        run: railway up --service frontend-service
