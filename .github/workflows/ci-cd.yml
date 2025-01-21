@@ -13,7 +13,7 @@ jobs:
   # Step 1: Run Tests for Backend
   test-backend:
     runs-on: ubuntu-latest
-    environment: production
+    environment: test
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -36,6 +36,8 @@ jobs:
       - name: Run Tests
         working-directory: backend
         env:
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          JWT_REFRESH_SECRET: ${{ secrets.JWT_REFRESH_SECRET }}
           MONGODB_URI_TEST: ${{ secrets.MONGODB_URI_TEST }}
         run: npm test
 
