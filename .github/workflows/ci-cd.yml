@@ -57,7 +57,8 @@ jobs:
         env:
           RAILWAY_API_TOKEN: ${{ secrets.RAILWAY_API_TOKEN }}
           RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
-        run: railway up --project $RAILWAY_PROJECT_ID --directory backend --service backend-service
+        run: RAILWAY_PROJECT=$RAILWAY_PROJECT_ID railway up --directory backend --service backend-service
+
 
       - name: Get Backend URL
         env:
@@ -96,4 +97,4 @@ jobs:
         env:
           RAILWAY_API_TOKEN: ${{ secrets.RAILWAY_API_TOKEN }}
           RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
-        run: railway up --project $RAILWAY_PROJECT_ID --directory frontend --service frontend-service
+        run: RAILWAY_PROJECT=$RAILWAY_PROJECT_ID railway up --directory backend --service backend-service
