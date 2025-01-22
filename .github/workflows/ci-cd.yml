@@ -87,7 +87,7 @@ jobs:
       - name: Debug VITE_API_URL
         working-directory: frontend
         env:
-          VITE_API_URL: ${{ env.API_URL }}
+          VITE_API_URL: ${{ secrets.API_URL }}
         run: |
           if [ -z "$VITE_API_URL" ]; then
             echo "VITE_API_URL is not set."
@@ -99,7 +99,7 @@ jobs:
       - name: Build Frontend with API URL
         working-directory: frontend
         env:
-          VITE_API_URL: ${{ env.API_URL }}
+          VITE_API_URL: ${{ secrets.API_URL }}
         run: npm run build
 
       - name: Deploy Frontend
