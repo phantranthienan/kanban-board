@@ -6,8 +6,6 @@ import { CustomError } from '@/errors';
 /**
  * Create a new board for the authenticated user.
  * @route POST /boards
- * @param {AuthRequest} req - Express request object with authenticated user and board data.
- * @param {Response} res - Express response object.
  */
 export const createBoard = async (req: AuthRequest, res: Response) => {
     const userId = req.user!.id;
@@ -19,9 +17,6 @@ export const createBoard = async (req: AuthRequest, res: Response) => {
 /**
  * Get a specific board by its ID.
  * @route GET /boards/:id
- * @param {AuthRequest} req - Express request object containing boardId.
- * @param {Response} res - Express response object.
- * @param {NextFunction} next - Express next function for error handling.
  */
 export const getBoardById = async (req: AuthRequest, res: Response, next: NextFunction) => {
     const boardId = req.params.id;
@@ -36,8 +31,6 @@ export const getBoardById = async (req: AuthRequest, res: Response, next: NextFu
 /**
  * Get all boards for the authenticated user.
  * @route GET /boards
- * @param {AuthRequest} req - Express request object with authenticated user.
- * @param {Response} res - Express response object.
  */
 export const getUserBoards = async (req: AuthRequest, res: Response) => {
     const userId = req.user!.id;
@@ -48,8 +41,6 @@ export const getUserBoards = async (req: AuthRequest, res: Response) => {
 /**
  * Update a specific board by its ID.
  * @route PUT /boards/:id
- * @param {Request} req - Express request object containing boardId and update data.
- * @param {Response} res - Express response object.
  */
 export const updateBoard = async (req: Request, res: Response) => {
     const boardId = req.params.id;
@@ -60,8 +51,6 @@ export const updateBoard = async (req: Request, res: Response) => {
 /**
  * Delete a specific board by its ID.
  * @route DELETE /boards/:id
- * @param {Request} req - Express request object containing boardId.
- * @param {Response} res - Express response object.
  */
 export const deleteBoard = async (req: AuthRequest, res: Response) => {
     const userId = req.user!.id;
@@ -73,8 +62,6 @@ export const deleteBoard = async (req: AuthRequest, res: Response) => {
 /**
  * Update positions of boards.
  * @route PUT /boards/updatePositions
- * @param {Request} req - Express request object containing board positions.
- * @param {Response} res - Express response object.
  */
 export const reorderBoards = async (req: AuthRequest, res: Response) => {
     const userId = req.user!.id;

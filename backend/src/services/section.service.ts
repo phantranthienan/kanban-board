@@ -3,9 +3,9 @@ import { SectionDocument, TSection, createSection, getSectionById, updateSection
 import { getNumberOfSectionsInBoard } from "@/models/board.model";
 
 /**
- * Create a new section and add it to the board.
- * @param {Omit<TSection, 'position'>} sectionData - The section data without position.
- * @return {Promise<SectionDocument>} The newly created section document.
+ * Create a new section.
+ * @param {Omit<TSection, 'position'>} sectionData - Section data without position.
+ * @return {Promise<SectionDocument>} The new section document.
  */
 export const createNewSection = async (sectionData: Omit<TSection, 'position'>): Promise<SectionDocument> => {
     try {
@@ -22,9 +22,9 @@ export const createNewSection = async (sectionData: Omit<TSection, 'position'>):
 };
 
 /**
- * Fetch a section by its ID.
- * @param {string} sectionId - The ID of the section.
- * @return {Promise<SectionDocument>} The section document if found.
+ * Fetch a section by ID.
+ * @param {string} sectionId - Section ID.
+ * @return {Promise<SectionDocument>} The section document.
  */
 export const getSection = async (sectionId: string): Promise<SectionDocument> => {
     const section = await getSectionById(sectionId);
@@ -36,26 +36,20 @@ export const getSection = async (sectionId: string): Promise<SectionDocument> =>
 
 /**
  * Fetch all sections for a board.
- * @param {string} boardId - The ID of the board.
- * @return {Promise<SectionDocument[]>} An array of section documents.
+ * @param {string} boardId - Board ID.
+ * @return {Promise<SectionDocument[]>} Array of section documents.
  */
 export const getSectionsOfBoard = async (boardId: string): Promise<SectionDocument[]> => {
     return await getSectionsByBoardId(boardId);
 }
 
 /**
- * Delete a section by its ID.
- * @param {string} sectionId - The ID of the section to delete.
- * @return {Promise<SectionDocument>} The deleted section document.
- */
-/**
  * Delete a section and reorder remaining sections.
- * @param {string} boardId - The ID of the board containing the section.
- * @param {string} sectionId - The ID of the section to delete.
+ * @param {string} boardId - Board ID.
+ * @param {string} sectionId - Section ID.
  * @return {Promise<void>}
  */
 export const deleteAndReorderSections = async (boardId: string, sectionId: string): Promise<void> => {
-    // Get the section to delete
     const sectionToDelete = await getSectionById(sectionId);
 
     if (!sectionToDelete) {
@@ -64,12 +58,10 @@ export const deleteAndReorderSections = async (boardId: string, sectionId: strin
 
     await deleteSectionById(sectionId);
 
-    // Fetch all sections in the same board that come after the deleted section
     const sectionsToUpdate = await getSectionsByBoardId(boardId).then((sections) =>
         sections.filter((section) => section.position > sectionToDelete.position)
     );
 
-    // Update the position of each section
     await Promise.all(
         sectionsToUpdate.map((section) =>
             updateSectionById(section.id, { position: section.position - 1 })
@@ -78,9 +70,9 @@ export const deleteAndReorderSections = async (boardId: string, sectionId: strin
 };
 
 /**
- * Update an existing section by ID.
- * @param {string} sectionId - The ID of the section to update.
- * @param {Partial<TSection>} sectionData - The data to update.
+ * Update a section by ID.
+ * @param {string} sectionId - Section ID.
+ * @param {Partial<TSection>} sectionData - Data to update.
  * @return {Promise<SectionDocument>} The updated section document.
  */
 export const updateSection = async (sectionId: string, sectionData: Partial<TSection>): Promise<SectionDocument> => {
@@ -91,10 +83,9 @@ export const updateSection = async (sectionId: string, sectionData: Partial<TSec
     return updatedSection;
 };
 
-
 /**
- * Update positions of multiple sections within a board.
- * @param {string} boardId - The ID of the board.
+ * Update positions of multiple sections.
+ * @param {string} boardId - Board ID.
  * @param {Array<{ id: string, position: number }>} sections - Sections with updated positions.
  * @return {Promise<void>}
  */

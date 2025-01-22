@@ -8,8 +8,6 @@ import { Types } from "mongoose";
 
 /**
  * Creates a new task in a section.
- * Determines the position of the task within the section, creates the task,
- * and adds the task ID to the corresponding section's tasks array.
  * @param {Omit<TTask, 'position'>} taskData - The task data without the position field.
  * @return {Promise<TaskDocument>} The newly created task document.
  * @throws {CustomError} Throws an error if task creation fails.
@@ -71,17 +69,14 @@ export const deleteAndReorderTasks = async (
     sectionId: string,
     taskId: string
 ): Promise<void> => {
-    // Fetch the task to be deleted
     const taskToDelete = await getTaskById(taskId);
 
     if (!taskToDelete) {
         throw new CustomError('Task not found', 404);
     }
 
-    // Delete the task
     await deleteTaskById(taskId);
 
-    // Fetch and reorder tasks with positions greater than the deleted task
     const tasksToUpdate = await getTasksBySectionId(sectionId);
     const updates = tasksToUpdate
         .filter((task) => task.position > taskToDelete.position)
@@ -89,14 +84,11 @@ export const deleteAndReorderTasks = async (
             updateTaskById(task.id, { position: task.position - 1 })
         );
 
-    // Perform updates in parallel
     await Promise.all(updates);
 };
 
-
 /**
  * Updates a task by its ID.
- * Finds the task by its ID and updates it with the provided data.
  * @param {string} taskId - The ID of the task to update.
  * @param {Partial<TTask>} taskData - The data to update the task with.
  * @return {Promise<TaskDocument>} The updated task document if found.
@@ -116,7 +108,6 @@ export const updateTask = async (taskId: string, taskData: Partial<TTask>): Prom
  * @param {string} sourceSectionId - The ID of the new section to move the task to.
  * @param {string} targetSectionId - The ID of the target section to move the task to.
  * @param {number} targetPosition - The new position of the task in the target section.
- * @
  */
 export const moveAndReorderTask = async (
     taskId: string,

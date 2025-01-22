@@ -4,8 +4,7 @@ import * as sectionService from '@/services/section.service';
 /**
  * Create a new section for a specific board.
  * @route POST /boards/:boardId/sections
- * @param {Request} req - Express request object containing boardId and section data.
- * @param {Response} res - Express response object.
+
  */
 export const createSection = async (req: Request, res: Response) => {
     const { boardId } = req.params;
@@ -17,8 +16,6 @@ export const createSection = async (req: Request, res: Response) => {
 /**
  * Get a section by its ID.
  * @route GET /boards/:boardId/sections/:sectionId
- * @param {Request} req - Express request object containing sectionId.
- * @param {Response} res - Express response object.
  */
 export const getSectionById = async (req: Request, res: Response) => {
     const { sectionId } = req.params;
@@ -29,8 +26,6 @@ export const getSectionById = async (req: Request, res: Response) => {
 /**
  * Get all sections for a board.
  * @route GET /boards/:boardId/sections
- * @param {Request} req - Express request object containing boardId.
- * @param {Response} res - Express response object.
  */
 export const getSectionsByBoardId = async (req: Request, res: Response) => {
     const { boardId } = req.params;
@@ -41,8 +36,6 @@ export const getSectionsByBoardId = async (req: Request, res: Response) => {
 /**
  * Update a section by its ID.
  * @route PUT /boards/:boardId/sections/:sectionId
- * @param {Request} req - Express request object containing sectionId and update data.
- * @param {Response} res - Express response object.
  */
 export const updateSection = async (req: Request, res: Response) => {
     const { sectionId } = req.params;
@@ -53,8 +46,6 @@ export const updateSection = async (req: Request, res: Response) => {
 /**
  * Delete a section by its ID.
  * @route DELETE /boards/:boardId/sections/:sectionId
- * @param {Request} req - Express request object containing sectionId.
- * @param {Response} res - Express response object.
  */
 export const deleteSection = async (req: Request, res: Response) => {
     const { boardId, sectionId } = req.params;
@@ -65,8 +56,6 @@ export const deleteSection = async (req: Request, res: Response) => {
 /**
  * Reorder sections within a board.
  * @route PUT /boards/:boardId/sections/reorder
- * @param {Request} req - Express request object containing reordered sections.
- * @param {Response} res - Express response object.
  */
 export const reorderSections = async (req: Request, res: Response) => {
     const { boardId } = req.params;

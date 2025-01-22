@@ -91,33 +91,6 @@ const SideBar: React.FC = () => {
 		}),
 	);
 
-	// // Compare current board positions with initial ones and update if changed
-	// const compareAndUpdateBoards = (updatedBoards: TBoard[]) => {
-	// 	updatedBoards.forEach((board, index) => {
-	// 		const initialBoard = initialBoards.find((b) => b.id === board.id);
-	// 		if (initialBoard && initialBoard.position !== index) {
-	// 			updateBoard({ id: board.id, position: index });
-	// 		}
-	// 	});
-	// 	setInitialBoards(updatedBoards); // Update initial boards to new order
-	// };
-
-	// // Handle board reordering after drag and drop
-	// const handleDragEnd = (event: DragEndEvent) => {
-	// 	const { active, over } = event;
-	// 	if (active.id !== over?.id) {
-	// 		setBoards((prevBoards) => {
-	// 			const oldIndex = prevBoards.findIndex(
-	// 				(board) => board.id === active.id,
-	// 			);
-	// 			const newIndex = prevBoards.findIndex((board) => board.id === over?.id);
-	// 			const updatedBoards = arrayMove(prevBoards, oldIndex, newIndex);
-	// 			compareAndUpdateBoards(updatedBoards); // Update positions
-	// 			return updatedBoards;
-	// 		});
-	// 	}
-	// };
-
 	const handleDragEnd = async (event: DragEndEvent) => {
 		const { active, over } = event;
 		if (active.id !== over?.id) {
