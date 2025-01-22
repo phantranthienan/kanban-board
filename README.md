@@ -106,7 +106,7 @@ The scripts folder contains automation scripts for various tasks.
 
 This diagram illustrates the network flow for the application, showing how HTTP/HTTPS requests are routed between components.
 
-![Network Flow Diagram](image-3.png)
+![Network Flow Diagram](image.png)
 
 ### Description
 1. **HTTP/HTTPS Requests**:
