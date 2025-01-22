@@ -62,12 +62,6 @@ jobs:
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
         run: railway up --service backend-service
-
-      - name: Get Backend URL
-        env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-        run: |
-          echo "BACKEND_URL=$(railway status --json | jq -r '.services[] | select(.name == \"backend-service\") | .url')" >> $GITHUB_ENV
   
   # Step 3: Build and Deploy Frontend
   build-and-deploy-frontend:
@@ -90,10 +84,10 @@ jobs:
         working-directory: frontend
         run: npm install
 
-      - name: Build Frontend with Backend URL
+      - name: Build Frontend with API URL
         working-directory: frontend
         env:
-          VITE_API_URL: ${{ env.BACKEND_URL }}
+          VITE_API_URL: ${{ env.API_URL }}
         run: npm run build
 
       - name: Deploy Frontend
