@@ -58,9 +58,6 @@ The scripts folder contains automation scripts for various tasks.
 ---
 
 ## 🚀 Features
-
-## 🚀 Features
-
 - **Task Management**: Add, edit, and delete tasks in different sections.
 - **Drag and Drop**: Seamlessly move tasks across sections using intuitive drag-and-drop functionality.
 - **User Authentication**: Secure login and token-based authentication, including support for Google Authentication.
@@ -105,22 +102,112 @@ The scripts folder contains automation scripts for various tasks.
 ## 🌐 Network Flow Diagram
 
 This diagram illustrates the network flow for the application, showing how HTTP/HTTPS requests are routed between components.
-
 ![Network Flow Diagram](image.png)
 
 ### Description
 1. **HTTP/HTTPS Requests**:
    - All HTTP requests sent to port `80` are redirected to HTTPS on port `443`.
    - HTTPS requests on port `443` are handled by NGINX.
-
 2. **Frontend**:
    - NGINX routes requests for the React application to the frontend container (`kanban_frontend`) on port `5173`.
-
 3. **Backend**:
    - API requests (`/api/*`) are proxied by NGINX to the backend container (`kanban_backend`) on port `3000`.
-
 4. **Database**:
    - The backend interacts with the MongoDB database (`kanban_database`) on port `27017` for data storage and retrieval.
+
+---
+
+## 📝 Development Guide
+
+### **Prerequisites**
+Ensure you have the following installed on your system:
+- **Node.js** (JavaScript runtime)
+- **Docker** (for containerized development)
+- **MongoDB** (local or use a cloud service like MongoDB Atlas)
+- **npm** or **yarn** (for dependency management)
+- **Git** (for version control)
+
+### **Clone the Repository**
+```
+git clone https://github.com/phantranthienan/kanban-board.git
+cd kanban-board
+```
+
+Follow these steps to set up and run the project in your local development environment.
+
+### **1. Run Separately with `npm run dev`**
+
+#### **Backend Setup**
+
+1. Navigate to the backend folder: `cd backend`
+
+2. Install dependencies: `npm install`
+
+3. Set up the environment variables:
+   - Create a `.env` file in the `backend` directory.
+   - Add the following variables:
+
+     ```env
+     PORT=3000
+     MONGODB_URI_DEV=mongodb://localhost:27017/kanban
+     CORS_ORIGINS=http://localhost:5173
+      FRONTEND_URL=http://localhost:5173
+     JWT_SECRET=your_jwt_secret
+     JWT_REFRESH_SECRET=your_jwt_refrest_secret
+     GOOGLE_CLIENT_ID=your_google_client_id
+     GOOGLE_CLIENT_SECRET=your_google_client_secret
+     GOOGLE_REDIRECT_URI=http://localhost:3000/api/auth/google/callback
+     ```
+
+4. Start the development server: `npm run dev`
+
+#### **Frontend Setup**
+
+1. Navigate to the frontend folder: `cd frontend`
+
+2. Install dependencies: `npm install`
+
+3. Set up the environment variables:
+   - Create a `.env.developement` file in the `frontend` directory.
+   - Add the following variables:
+
+     ```env
+     VITE_API_URL=http://localhost:3000/api
+     ```
+
+4. Start the development server: `npm run dev`
+
+### **2. Run Using Scripts**
+
+This approach simplifies development using Docker and automated scripts for setup and teardown.
+
+#### **Windows**
+
+1. Navigate to the `scripts/win` directory: `cd scripts/win`
+
+2. Generate TLS/SSL certificates: `./generate_tls.sh`
+
+3. Start the development environment: `./dev.sh run`
+
+4. To stop and clean up resources:
+```
+   ./dev.sh stop  
+   ./dev.sh clean
+```
+
+#### **Linux**
+
+1. Navigate to the `scripts/linux` directory: `cd scripts/linux`
+
+2. Generate TLS/SSL certificates: `bash generate_tls.sh`
+
+3. Start the development environment: `bash dev.sh run`
+
+4. To stop and clean up resources:
+```
+   bash dev.sh stop  
+   bash dev.sh clean
+```
 
 ---
 
