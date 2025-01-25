@@ -67,7 +67,7 @@ export const googleCallbackHandler = async (req: Request, res: Response) => {
         throw new CustomError('Authorization code is required', 400);
     };
     try {
-        const { accessToken, refreshToken, user } = await authService.handleGoogleCallback(code as string);
+        const { accessToken: _accessToken, refreshToken, user: _user } = await authService.handleGoogleCallback(code as string);
         res.cookie('refreshToken', refreshToken, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
