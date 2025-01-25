@@ -6,5 +6,6 @@ export type TBoard = {
 	favorite: boolean;
 	position: number;
 	user: string;
+	sectionsOrder: string[];
 	sections: string[];
 };

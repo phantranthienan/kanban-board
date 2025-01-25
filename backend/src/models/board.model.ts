@@ -28,6 +28,11 @@ export const boardSchema = new Schema({
         ref: 'User',
         required: true,
     },
+    sectionsOrder: [{
+        type: Schema.Types.ObjectId,
+        ref: 'Section',
+        default: [],
+    }],
     sections: [{
         type: Schema.Types.ObjectId,
         ref: 'Section',
@@ -84,18 +89,7 @@ export const getBoardById = async (id: string): Promise<BoardDocument | null> =>
  */
 export const getBoardsByUserId = async (userId: string): Promise<BoardDocument[]> => {
     return await Board.find({ user: userId }).sort({ position: 1 });
-}
-
-/**
- * Get number of Sections in a Board.
- * @param {string} boardId - The ID of the board to get the number of sections for.
- * @return {Promise<number>} The number of sections in the board.
- */
-export const getNumberOfSectionsInBoard = async (boardId: string): Promise<number> => {
-    const board = await Board.findById(boardId);
-    return board ? board.sections.length : 0;
-}
-
+};
 
 /**
  * Update a board by id.

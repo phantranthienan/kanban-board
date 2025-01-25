@@ -48,18 +48,7 @@ export const updateSection = async (req: Request, res: Response) => {
  * @route DELETE /boards/:boardId/sections/:sectionId
  */
 export const deleteSection = async (req: Request, res: Response) => {
-    const { boardId, sectionId } = req.params;
-    await sectionService.deleteAndReorderSections(boardId, sectionId);
+    const { sectionId } = req.params;
+    await sectionService.deleteSection(sectionId);
     res.status(204).send();
-};
-
-/**
- * Reorder sections within a board.
- * @route PUT /boards/:boardId/sections/reorder
- */
-export const reorderSections = async (req: Request, res: Response) => {
-    const { boardId } = req.params;
-    const { sections } = req.body; 
-    await sectionService.updateSectionPositions(boardId, sections);
-    res.status(200).send();
 };

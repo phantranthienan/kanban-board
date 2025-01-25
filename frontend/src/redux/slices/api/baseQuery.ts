@@ -49,16 +49,3 @@ export const baseQuery: BaseQueryFn<
 	}
 	return result;
 };
-
-// export const baseQuery = fetchBaseQuery({
-// 	baseUrl: apiEndpoint,
-// 	prepareHeaders: (headers, { endpoint }) => {
-// 		if (endpoint !== 'login' && endpoint !== 'register') {
-// 			const token = tokenManager.getAccessToken();
-// 			if (token) {
-// 				headers.set('Authorization', `Bearer ${token}`);
-// 			}
-// 		}
-// 		return headers;
-// 	},
-// });

@@ -68,7 +68,6 @@ export const googleCallbackHandler = async (req: Request, res: Response) => {
     };
     try {
         const { accessToken, refreshToken, user } = await authService.handleGoogleCallback(code as string);
-        console.log(accessToken, refreshToken, user);
         res.cookie('refreshToken', refreshToken, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',

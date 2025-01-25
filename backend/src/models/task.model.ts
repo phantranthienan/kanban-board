@@ -14,10 +14,6 @@ const taskSchema = new Schema({
         type: Date,
         required: true
     },
-    position: { 
-        type: Number, 
-        default: 0 
-    },
     section: { 
         type: Schema.Types.ObjectId, 
         ref: 'Section', 
@@ -32,6 +28,10 @@ const taskSchema = new Schema({
         ref: 'Board',
         required: true
     },
+    isPlaceHolder: {
+        type: Boolean,
+        default: false
+    }
 });
 
 taskSchema.set('toJSON', {
@@ -45,12 +45,14 @@ taskSchema.set('toJSON', {
 taskSchema.post('save', async (doc) => {
     if (doc) {
         await Section.findByIdAndUpdate(doc.section, { $push: { tasks: doc._id } });
+        await Section.findByIdAndUpdate(doc.section, { $push: { tasksOrder: doc._id } });
     }
 });
 
 taskSchema.post('findOneAndDelete', async (doc) => {
     if (doc) {
         await Section.findByIdAndUpdate(doc.section, { $pull: { tasks: doc._id } });
+        await Section.findByIdAndUpdate(doc.section, { $pull: { tasksOrder: doc._id } });
     }
 });
 
@@ -114,27 +116,4 @@ export const updateTaskById = async (id: string, updateData: Partial<TTask>): Pr
  */
 export const deleteTaskById = async (id: string): Promise<TaskDocument | null> => {
     return await Task.findByIdAndDelete(id);
-};
-
-/**
- * Adjust the position of tasks in a section
- * @param {string} sectionId - The ID of the section to adjust tasks in
- * @param {number} startPosition - The position to start adjusting from
- * @param {number | null} endPosition - The position to end adjusting at
- * @param {number} increment - The amount to increment the positions by
- * @return {Promise<void>}
- */
-export const adjustPositionsInSection = async (
-    sectionId: string,
-    startPosition: number,
-    endPosition: number | null,
-    increment: number
-): Promise<void> => {
-    const condition = {
-        section: sectionId,
-        position: endPosition !== null
-            ? { $gte: startPosition, $lte: endPosition }
-            : { $gte: startPosition },
-    };
-    await Task.updateMany(condition, { $inc: { position: increment } });
 };

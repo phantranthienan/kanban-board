@@ -4,7 +4,7 @@ export type TTask = {
 	description: string;
 	deadline: Date;
 	subtasks: string[];
-	position: number;
 	section: string;
 	board: string;
+	isPlaceHolder: boolean;
 };

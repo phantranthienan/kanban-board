@@ -1,132 +1,71 @@
 import { createApi } from '@reduxjs/toolkit/query/react';
+import { sectionApi } from './sectionApiSlice';
 import { baseQuery } from './baseQuery';
-import { TTask } from '../../../types/common/tasks';
-
-type TaskTag = { type: 'Task'; id: string | 'BOARD' | `SECTION_${string}` };
+import {
+	CreateTaskRequest,
+	CreateTaskResponse,
+	UpdateTaskRequest,
+	UpdateTaskResponse,
+	DeleteTaskRequest,
+	DeleteTaskResponse,
+} from '../../../types/api/task';
 
 export const taskApi = createApi({
 	reducerPath: 'taskApi',
 	baseQuery: baseQuery,
 	tagTypes: ['Task'],
 	endpoints: (builder) => ({
-		// Fetch all tasks for a specific board
-		getTasksOfBoard: builder.query<TTask[], string>({
-			query: (boardId) => `boards/${boardId}/tasks`, // Endpoint for fetching tasks
-			providesTags: (result) =>
-				result
-					? [
-							...result.map(
-								(task) => ({ type: 'Task', id: task.id }) as TaskTag,
-							),
-							{ type: 'Task', id: 'BOARD' }, // Tag for board-level cache
-						]
-					: [{ type: 'Task', id: 'BOARD' }],
-		}),
-
-		// Fetch all tasks for a specific section
-		getTasksOfSection: builder.query<
-			TTask[],
-			{ boardId: string; sectionId: string }
-		>({
-			query: ({ boardId, sectionId }) =>
-				`boards/${boardId}/sections/${sectionId}/tasks`, // Endpoint for fetching tasks
-			providesTags: (result, _error, { sectionId }) =>
-				result
-					? [
-							...result.map(
-								(task) => ({ type: 'Task', id: task.id }) as TaskTag,
-							),
-							{ type: 'Task', id: `SECTION_${sectionId}` }, // Tag for section-level cache
-						]
-					: [{ type: 'Task', id: `SECTION_${sectionId}` }],
-		}),
-
-		// Fetch a specific task by ID
-		getTaskById: builder.query<
-			TTask,
-			{ boardId: string; sectionId: string; taskId: string }
-		>({
-			query: ({ boardId, sectionId, taskId }) =>
-				`boards/${boardId}/sections/${sectionId}/tasks/${taskId}`, // Endpoint for fetching a specific task
-			providesTags: (_result, _error, { taskId }) => [
-				{ type: 'Task', id: taskId },
-			],
-		}),
-
 		// Create a new task in a section
-		createTask: builder.mutation<TTask, Omit<TTask, 'id' | 'position'>>({
+		createTask: builder.mutation<CreateTaskResponse, CreateTaskRequest>({
 			query: (newTask) => ({
 				url: `boards/${newTask.board}/sections/${newTask.section}/tasks`, // Endpoint for creating a task
 				method: 'POST',
 				body: newTask,
 			}),
-			invalidatesTags: (_result, _error, { section }) => [
-				{ type: 'Task', id: `SECTION_${section}` },
-				{ type: 'Task', id: 'BOARD' }, // Invalidate board-level cache
-			],
+			async onQueryStarted(_args, { dispatch, queryFulfilled }) {
+				await queryFulfilled;
+				dispatch(
+					sectionApi.util.invalidateTags([{ type: 'Section', id: 'LIST' }]),
+				);
+			},
+			invalidatesTags: ['Task'],
 		}),
 
 		// Update a task by ID
-		updateTask: builder.mutation<TTask, Partial<TTask>>({
+		updateTask: builder.mutation<UpdateTaskResponse, UpdateTaskRequest>({
 			query: (updatedTask) => ({
 				url: `boards/${updatedTask.board}/sections/${updatedTask.section}/tasks/${updatedTask.id}`, // Endpoint for updating a task
 				method: 'PUT',
 				body: updatedTask,
 			}),
-			invalidatesTags: (_result, _error, { id, section }) => [
-				{ type: 'Task', id },
-				{ type: 'Task', id: `SECTION_${section}` },
-				{ type: 'Task', id: 'BOARD' }, // Invalidate board-level cache
-			],
+			async onQueryStarted(_args, { dispatch, queryFulfilled }) {
+				await queryFulfilled;
+				dispatch(
+					sectionApi.util.invalidateTags([{ type: 'Section', id: 'LIST' }]),
+				);
+			},
+			invalidatesTags: ['Task'],
 		}),
 
 		// Delete a task by ID
-		deleteTask: builder.mutation<
-			void,
-			{ boardId: string; sectionId: string; taskId: string }
-		>({
+		deleteTask: builder.mutation<DeleteTaskResponse, DeleteTaskRequest>({
 			query: ({ boardId, sectionId, taskId }) => ({
 				url: `boards/${boardId}/sections/${sectionId}/tasks/${taskId}`, // Endpoint for deleting a task
 				method: 'DELETE',
 			}),
-			invalidatesTags: (_result, _error, { sectionId, taskId }) => [
-				{ type: 'Task', id: taskId }, // Invalidate the deleted task
-				{ type: 'Task', id: `SECTION_${sectionId}` }, // Invalidate section-level cache
-				{ type: 'Task', id: 'BOARD' }, // Invalidate board-level cache
-			],
-		}),
-
-		// Move a task to another section or reorder tasks
-		moveTask: builder.mutation<
-			void,
-			{
-				taskId: string;
-				boardId: string;
-				fromSection: string;
-				toSection: string;
-				position: number;
-			}
-		>({
-			query: ({ taskId, boardId, fromSection, toSection, position }) => ({
-				url: `boards/${boardId}/tasks/${taskId}/move`, // Backend endpoint for moving tasks
-				method: 'PUT',
-				body: { fromSection, toSection, position },
-			}),
-			invalidatesTags: (_result, _error, { fromSection, toSection }) => [
-				{ type: 'Task', id: `SECTION_${fromSection}` }, // Invalidate source section cache
-				{ type: 'Task', id: `SECTION_${toSection}` }, // Invalidate target section cache
-				{ type: 'Task', id: 'BOARD' }, // Invalidate board-level cache
-			],
+			async onQueryStarted(_args, { dispatch, queryFulfilled }) {
+				await queryFulfilled;
+				dispatch(
+					sectionApi.util.invalidateTags([{ type: 'Section', id: 'LIST' }]),
+				);
+			},
+			invalidatesTags: ['Task'],
 		}),
 	}),
 });
 
 export const {
-	useGetTasksOfBoardQuery,
-	useGetTasksOfSectionQuery,
-	useGetTaskByIdQuery,
 	useCreateTaskMutation,
 	useUpdateTaskMutation,
 	useDeleteTaskMutation,
-	useMoveTaskMutation,
 } = taskApi;

@@ -2,27 +2,27 @@ import React, { useState } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 
-import { useAppDispatch } from '../../hooks/storeHooks';
-import { useErrorHandler } from '../../hooks/useErrorHandler';
-import { showNotification } from '../../redux/slices/notificationSlice';
+import { useAppDispatch } from '../../../../hooks/storeHooks';
+import { useErrorHandler } from '../../../../hooks/useErrorHandler';
+import { showNotification } from '../../../../redux/slices/notificationSlice';
 import {
 	useDeleteTaskMutation,
 	useUpdateTaskMutation,
-} from '../../redux/slices/api/taskApiSlice';
+} from '../../../../redux/slices/api/taskApiSlice';
 
 import { Box, Typography, IconButton, Menu, MenuItem } from '@mui/material';
 
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import TaskModal from './TaskModal';
 
-import { TTask } from '../../types/common/tasks';
-import { TaskInput } from '../../utils/zodSchemas';
+import { TTask } from '../../../../types/common/task';
+import { TaskInput } from '../../../../utils/zodSchemas';
 
-type TaskItemProps = {
+type TaskCardProps = {
 	task: TTask;
 };
 
-const TaskItem: React.FC<TaskItemProps> = ({ task }) => {
+const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
 	//Queries and mutations
 	const [deleteTask] = useDeleteTaskMutation();
 	const [updateTask] = useUpdateTaskMutation();
@@ -32,6 +32,7 @@ const TaskItem: React.FC<TaskItemProps> = ({ task }) => {
 	const [isModalOpen, setIsModalOpen] = useState(false);
 	const dispatch = useAppDispatch();
 	const handleError = useErrorHandler();
+
 	// Drag and drop
 	const {
 		attributes,
@@ -42,17 +43,18 @@ const TaskItem: React.FC<TaskItemProps> = ({ task }) => {
 		isDragging,
 	} = useSortable({
 		id: task.id,
+		disabled: task.isPlaceHolder,
 		data: {
 			type: 'task',
-			section: task.section,
 			task,
 		},
 	});
 
-	const style = {
+	const dndKitTaskStyles = {
 		transform: CSS.Transform.toString(transform),
 		cursor: 'grab',
-		transition,
+		transition: isDragging ? 'none' : transition, // Remove transition during drag
+		opacity: isDragging ? 0.5 : 1,
 	};
 
 	const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
@@ -106,49 +108,24 @@ const TaskItem: React.FC<TaskItemProps> = ({ task }) => {
 		}
 	};
 
-	if (isDragging) {
-		return (
-			<Box
-				ref={setNodeRef}
-				{...attributes}
-				{...listeners}
-				style={style}
-				sx={{
-					flexShrink: 0,
-					display: 'flex',
-					justifyContent: 'space-between',
-					alignItems: 'center',
-					height: '56px',
-					width: '100%',
-					px: 2,
-					py: 2,
-					backgroundColor: 'background.paper',
-					opacity: 0.5,
-					borderRadius: '4px',
-					cursor: 'pointer',
-				}}
-			></Box>
-		);
-	}
-
 	return (
 		<>
 			<Box
 				ref={setNodeRef}
 				{...attributes}
 				{...listeners}
-				style={style}
+				style={dndKitTaskStyles}
 				sx={{
-					display: 'flex',
+					display: task.isPlaceHolder ? 'none !important' : 'flex',
 					justifyContent: 'space-between',
 					alignItems: 'center',
 					height: '56px',
 					width: '100%',
-					px: 2,
-					py: 2,
+					p: 2,
 					backgroundColor: 'background.paper',
 					borderRadius: '4px',
-					cursor: 'pointer',
+					cursor: task.isPlaceHolder ? 'default' : 'pointer',
+					pointerEvents: task.isPlaceHolder ? 'none' : 'auto',
 				}}
 			>
 				<Typography variant="body1" fontWeight="bold">
@@ -189,4 +166,4 @@ const TaskItem: React.FC<TaskItemProps> = ({ task }) => {
 	);
 };
 
-export default TaskItem;
+export default TaskCard;

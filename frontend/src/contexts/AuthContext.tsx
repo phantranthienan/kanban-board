@@ -1,6 +1,6 @@
 import React, { createContext, useState, useEffect, ReactNode } from 'react';
 
-import { TUser } from '../types/common/users';
+import { TUser } from '../types/common/user';
 import { tokenManager } from '../utils/tokenManager';
 import { getAccessToken, getMyInfo } from '../services/api/authApi';
 

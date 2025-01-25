@@ -1,4 +1,4 @@
-import { TUser } from '../common/users';
+import { TUser } from '../common/user';
 import { LoginInput, RegisterInput } from '../../utils/validators/authSchemas';
 
 // Request types

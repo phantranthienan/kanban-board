@@ -1,9 +1,9 @@
-import { TTask } from './tasks';
+import { TTask } from './task';
 
 export type TSection = {
 	id: string;
 	title: string;
-	position: number;
 	board: string;
+	tasksOrder: string[];
 	tasks: TTask[];
 };

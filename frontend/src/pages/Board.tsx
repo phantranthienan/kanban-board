@@ -5,15 +5,15 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAppDispatch } from '../hooks/storeHooks';
 import { showNotification } from '../redux/slices/notificationSlice';
 import {
-	useGetBoardQuery,
+	useGetBoardDetailsQuery,
 	useUpdateBoardMutation,
 	useDeleteBoardMutation,
 } from '../redux/slices/api/boardApiSlice';
 
 import { Box, Divider } from '@mui/material';
 import Loading from '../components/common/Loading';
-import BoardHeader from '../components/BoardHeader/BoardHeader';
-import BoardBody from '../components/BoardBody/BoardBody';
+import BoardHeader from '../components/BoardHeader';
+import BoardBody from '../components/BoardBody';
 
 const Board: React.FC = () => {
 	const { boardId } = useParams();
@@ -25,7 +25,7 @@ const Board: React.FC = () => {
 		data: board,
 		isLoading: isBoardLoading,
 		isSuccess: isBoardSuccess,
-	} = useGetBoardQuery({ id: boardId as string });
+	} = useGetBoardDetailsQuery({ id: boardId as string });
 	const [updateBoard] = useUpdateBoardMutation();
 	const [deleteBoard] = useDeleteBoardMutation();
 
@@ -76,18 +76,20 @@ const Board: React.FC = () => {
 		>
 			{isBoardLoading && <Loading fullHeight />}
 			{board && (
-				<BoardHeader
-					title={title}
-					icon={board.icon}
-					onTitleChange={handleTitleChange}
-					onEmojiSelect={handleEmojiSelect}
-					onDelete={handleDeleteBoard}
-				/>
+				<>
+					<BoardHeader
+						title={title}
+						icon={board.icon}
+						onTitleChange={handleTitleChange}
+						onEmojiSelect={handleEmojiSelect}
+						onDelete={handleDeleteBoard}
+					/>
+
+					<Divider />
+
+					<BoardBody board={board} />
+				</>
 			)}
-
-			<Divider />
-
-			<BoardBody boardId={boardId as string} />
 		</Box>
 	);
 };

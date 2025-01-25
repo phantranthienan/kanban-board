@@ -7,17 +7,20 @@ const sectionSchema = new Schema({
         type: String, 
         default: 'Untitled Section'
     },
-    position: { 
-        type: Number, 
-        required: true 
-    },
     board: { 
         type: Schema.Types.ObjectId, 
-        ref: 'Board', required: true 
+        ref: 'Board', 
+        required: true 
     },
+    tasksOrder: [{
+        type: Schema.Types.ObjectId,
+        ref: 'Task',
+        default: [],
+    }],
     tasks: [{ 
         type: Schema.Types.ObjectId, 
-        ref: 'Task' 
+        ref: 'Task',
+        default: []
     }],
 });
 
@@ -32,6 +35,7 @@ sectionSchema.set('toJSON', {
 sectionSchema.post('save', async (doc) => {
     if (doc) {
         await Board.findByIdAndUpdate(doc.board, { $push: { sections: doc._id } });
+        await Board.findByIdAndUpdate(doc.board, { $push: { sectionsOrder: doc._id } });
     }
 });
 
@@ -39,6 +43,7 @@ sectionSchema.post('findOneAndDelete', async (doc) => {
     if (doc) {
         await Task.deleteMany({ section: doc._id });
         await Board.findByIdAndUpdate(doc.board, { $pull: { sections: doc._id } });
+        await Board.findByIdAndUpdate(doc.board, { $pull: { sectionsOrder: doc._id } });
     }
 })
 
@@ -73,7 +78,7 @@ export const getSectionById = async (id: string): Promise<SectionDocument | null
  * @return {Promise<SectionDocument[]>} The array of section documents for the board
  */
 export const getSectionsByBoardId = async (boardId: string): Promise<SectionDocument[]> => {
-    return await Section.find({ board: boardId }).sort({ position: 1});
+    return await Section.find({ board: boardId }).populate('tasks');
 }
 
 /**
@@ -96,16 +101,6 @@ export const deleteSectionById = async (id: string): Promise<SectionDocument | n
 };
 
 /**
- * Get number of tasks in a section
- * @param {string} id - The ID of the section to count tasks
- * @return {Promise<number>} The number of tasks in the section
- */
-export const getNumberOfTasksInSection = async (id: string): Promise<number> => {
-    const section = await Section.findById(id);
-    return section?.tasks.length || 0;
-}
-
-/**
  * Remove a task from a section
  * @param {string} sectionId - The ID of the section to remove the task from
  * @param {string} taskId - The ID of the task to remove
@@ -123,21 +118,4 @@ export const removeTaskFromSection = async (sectionId: string, taskId: string): 
  */
 export const addTaskToSection = async (sectionId: string, taskId: string): Promise<void> => {
     await Section.findByIdAndUpdate(sectionId, { $push: { tasks: taskId } });
-}
-
-/**
- * Bulk update sections' positions
- * @param {string} boardId - The ID of the board.
- * @param {Array<{ id: string, position: number }>} sections - Sections with updated positions.
- * @return {Promise<void>}
- */
-export const bulkUpdateSections = async (boardId: string, sections: Array<{ id: string, position: number }>): Promise<void> => {
-    const bulkOps = sections.map(({ id, position }) => ({
-        updateOne: {
-            filter: { _id: id, board: boardId },
-            update: { position },
-        }
-    }));
-
-    await Section.bulkWrite(bulkOps);
 }

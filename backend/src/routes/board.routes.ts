@@ -1,7 +1,6 @@
 import express from 'express';
 
 import { getUserBoards, createBoard, getBoardById, reorderBoards, updateBoard, deleteBoard} from '@/controllers/board.controller';
-import { getTasksByBoardId, moveTask } from '@/controllers/task.controller';
 import  sectionRoutes from '@/routes/section.routes';
  
 const router = express.Router();
@@ -26,11 +25,5 @@ router.delete('/:id', deleteBoard);
 
 /** Nested routes for sections */
 router.use('/:boardId/sections', sectionRoutes);
-
-/** GET /boards/:boardId/tasks - Get all tasks for a board */
-router.get('/:boardId/tasks', getTasksByBoardId);
-
-/** PUT /boards/:boardId/tasks/:taskId/move - Move a task to a different board */
-router.put('/:boardId/tasks/:taskId/move', moveTask);
 
 export default router;

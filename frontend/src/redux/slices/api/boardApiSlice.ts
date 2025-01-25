@@ -1,7 +1,7 @@
 import { createApi } from '@reduxjs/toolkit/query/react';
 import { baseQuery } from './baseQuery';
 import {
-	GetBoardRequest,
+	GetBoardDetailsRequest,
 	GetBoardsRequest,
 	CreateBoardRequest,
 	UpdateBoardRequest,
@@ -11,7 +11,7 @@ import {
 	CreateBoardResponse,
 	UpdateBoardResponse,
 	DeleteBoardResponse,
-	GetBoardResponse,
+	GetBoardDetailsResponse,
 	ReorderBoardsResponse,
 } from '../../../types/api/board';
 
@@ -22,11 +22,14 @@ export const boardApi = createApi({
 	endpoints: (builder) => ({
 		getBoards: builder.query<GetBoardsResponse, GetBoardsRequest>({
 			query: () => 'boards',
-			providesTags: ['Board'],
+			providesTags: [{ type: 'Board', id: 'LIST' }],
 		}),
-		getBoard: builder.query<GetBoardResponse, GetBoardRequest>({
+		getBoardDetails: builder.query<
+			GetBoardDetailsResponse,
+			GetBoardDetailsRequest
+		>({
 			query: ({ id }) => `boards/${id}`,
-			providesTags: ['Board'],
+			providesTags: (_result, _error, { id }) => [{ type: 'Board', id }],
 		}),
 		createBoard: builder.mutation<CreateBoardResponse, CreateBoardRequest>({
 			query: (newBoard) => ({
@@ -34,7 +37,7 @@ export const boardApi = createApi({
 				method: 'POST',
 				body: newBoard,
 			}),
-			invalidatesTags: ['Board'],
+			invalidatesTags: [{ type: 'Board', id: 'LIST' }],
 		}),
 		updateBoard: builder.mutation<UpdateBoardResponse, UpdateBoardRequest>({
 			query: (updatedBoard) => ({
@@ -42,14 +45,20 @@ export const boardApi = createApi({
 				method: 'PUT',
 				body: updatedBoard,
 			}),
-			invalidatesTags: ['Board'],
+			invalidatesTags: (_result, _error, { id }) => [
+				{ type: 'Board', id },
+				{ type: 'Board', id: 'LIST' },
+			],
 		}),
 		deleteBoard: builder.mutation<DeleteBoardResponse, DeleteBoardRequest>({
 			query: ({ id }) => ({
 				url: `boards/${id}`,
 				method: 'DELETE',
 			}),
-			invalidatesTags: ['Board'],
+			invalidatesTags: (_result, _error, { id }) => [
+				{ type: 'Board', id },
+				{ type: 'Board', id: 'LIST' },
+			],
 		}),
 		// Update multiple boards' positions in a single request
 		reorderBoards: builder.mutation<
@@ -61,7 +70,7 @@ export const boardApi = createApi({
 				method: 'POST',
 				body: { boards },
 			}),
-			invalidatesTags: ['Board'],
+			invalidatesTags: [{ type: 'Board', id: 'LIST' }],
 		}),
 	}),
 });
@@ -71,6 +80,6 @@ export const {
 	useCreateBoardMutation,
 	useUpdateBoardMutation,
 	useDeleteBoardMutation,
-	useGetBoardQuery,
+	useGetBoardDetailsQuery,
 	useReorderBoardsMutation,
 } = boardApi;

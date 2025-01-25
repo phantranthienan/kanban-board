@@ -52,7 +52,7 @@ import { logout } from '../../services/api/authApi';
 
 import { stringToAvatar } from '../../utils/avatarHelpers';
 
-import { TBoard } from '../../types/common/boards';
+import { TBoard } from '../../types/common/board';
 
 const SideBar: React.FC = () => {
 	const { user, unAuthenticate } = useAuth();
