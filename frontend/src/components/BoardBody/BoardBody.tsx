@@ -1,4 +1,10 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, {
+	useState,
+	useEffect,
+	useCallback,
+	useRef,
+	useMemo,
+} from 'react';
 import {
 	DndContext,
 	DragStartEvent,
@@ -61,13 +67,16 @@ const BoardBody: React.FC<BoardBodyProps> = ({ board }) => {
 
 	// Local state
 	const [localSections, setLocalSections] = useState<TSection[]>([]);
-	useEffect(() => {
+	const orderedSections = useMemo(() => {
 		if (sections) {
-			// Order sections based on the board.sectionsOrder
-			const orderedSections = mapOrder(sections, board.sectionsOrder, 'id');
-			setLocalSections(orderedSections);
+			return mapOrder(sections, board.sectionsOrder, 'id');
 		}
+		return [];
 	}, [board.sectionsOrder, sections]);
+
+	useEffect(() => {
+		setLocalSections(orderedSections);
+	}, [orderedSections]);
 
 	// Active item state (dragged item)
 	const [activeItemId, setActiveItemId] = useState<string | null>(null);

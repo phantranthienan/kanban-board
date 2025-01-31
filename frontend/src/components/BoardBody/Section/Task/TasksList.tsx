@@ -14,7 +14,8 @@ type TasksListProps = {
 const TasksList: React.FC<TasksListProps> = ({ tasks }) => {
 	const taskIds = useMemo(
 		() => tasks.map((task) => task.id),
-		[tasks], // Stable array reference unless tasks change
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+		[JSON.stringify(tasks.map((t) => t.id))],
 	);
 	return (
 		<SortableContext items={taskIds} strategy={verticalListSortingStrategy}>

@@ -34,7 +34,8 @@ const SectionColumn: React.FC<SectionColumnProps> = ({ section }) => {
 
 	const tasks = useMemo(
 		() => mapOrder(section.tasks, section.tasksOrder, 'id'),
-		[section.tasks, section.tasksOrder], // Only recalculate when these change
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+		[JSON.stringify(section.tasks), JSON.stringify(section.tasksOrder)], // Only recalculate when these change
 	);
 
 	// Queries and mutations

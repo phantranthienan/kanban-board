@@ -48,7 +48,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
 		defaultValues: {
 			title: '',
 			description: '',
-			deadline: new Date(),
+			deadline: dayjs().add(1, 'day').toDate(),
 			subtasks: [],
 		},
 		resolver: zodResolver(taskSchema),
