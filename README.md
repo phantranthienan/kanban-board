@@ -8,7 +8,10 @@ A **full-stack Kanban board application** built with the MERN stack (MongoDB, Ex
 
 Check out the preview of the application:
 
-![Preview](https://github.com/user-attachments/assets/8b1e05ea-121a-4f59-8cc3-d74b0f9b983c)
+<video width="600" controls>
+  <source src="https://github.com/user-attachments/assets/8b1e05ea-121a-4f59-8cc3-d74b0f9b983c" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
 
 ## 🗂️ File Structure
 
