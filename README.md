@@ -4,6 +4,12 @@ A **full-stack Kanban board application** built with the MERN stack (MongoDB, Ex
 
 ---
 
+## 🎥 Preview
+
+Check out the preview of the application:
+
+![Preview](https://github.com/user-attachments/assets/8b1e05ea-121a-4f59-8cc3-d74b0f9b983c)
+
 ## 🗂️ File Structure
 
 The project is organized into four main directories: `frontend`, `backend`,`infrastructure`, and `scripts`.
