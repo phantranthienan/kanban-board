@@ -4,9 +4,7 @@ import { TSection } from '../common/section';
 
 export type GetSectionsRequest = { boardId: string };
 export type CreateSectionRequest = { boardId: string };
-export type UpdateSectionRequest = Omit<Partial<TSection>, 'tasks'> & {
-	tasks?: string[];
-};
+export type UpdateSectionRequest = Partial<TSection>;
 export type DeleteSectionRequest = { boardId: string; sectionId: string };
 
 // Response types

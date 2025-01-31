@@ -43,11 +43,14 @@ export const sectionApi = createApi({
 			UpdateSectionResponse,
 			UpdateSectionRequest
 		>({
-			query: (updatedSection) => ({
-				url: `boards/${updatedSection.board}/sections/${updatedSection.id}`,
-				method: 'PUT',
-				body: updatedSection,
-			}),
+			query: ({ id, board, tasks, tasksOrder }) => {
+				const taskIds = tasks?.map((task) => task.id);
+				return {
+					url: `boards/${board}/sections/${id}`,
+					method: 'PUT',
+					body: { tasks: taskIds, tasksOrder },
+				};
+			},
 			async onQueryStarted({ board }, { dispatch, queryFulfilled }) {
 				await queryFulfilled;
 				dispatch(boardApi.util.invalidateTags([{ type: 'Board', id: board }]));

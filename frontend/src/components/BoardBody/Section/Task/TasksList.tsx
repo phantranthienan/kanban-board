@@ -17,6 +17,7 @@ const TasksList: React.FC<TasksListProps> = ({ tasks }) => {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 		[JSON.stringify(tasks.map((t) => t.id))],
 	);
+
 	return (
 		<SortableContext items={taskIds} strategy={verticalListSortingStrategy}>
 			{tasks.map((task) => {

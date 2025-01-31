@@ -1,10 +1,4 @@
-import React, {
-	useState,
-	useEffect,
-	useCallback,
-	useRef,
-	useMemo,
-} from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
 	DndContext,
 	DragStartEvent,
@@ -67,16 +61,17 @@ const BoardBody: React.FC<BoardBodyProps> = ({ board }) => {
 
 	// Local state
 	const [localSections, setLocalSections] = useState<TSection[]>([]);
-	const orderedSections = useMemo(() => {
+	useEffect(() => {
 		if (sections) {
-			return mapOrder(sections, board.sectionsOrder, 'id');
+			// Order sections based on the board.sectionsOrder
+			const orderedSections = mapOrder(sections, board.sectionsOrder, 'id');
+			setLocalSections(orderedSections);
 		}
-		return [];
 	}, [board.sectionsOrder, sections]);
 
 	useEffect(() => {
-		setLocalSections(orderedSections);
-	}, [orderedSections]);
+		console.log('Local sections', localSections);
+	}, [localSections]);
 
 	// Active item state (dragged item)
 	const [activeItemId, setActiveItemId] = useState<string | null>(null);
@@ -314,14 +309,14 @@ const BoardBody: React.FC<BoardBodyProps> = ({ board }) => {
 				updateSection({
 					id: oldSectionWhenDraggingTask?.id,
 					board: board.id,
-					tasks: newActiveSection?.tasksOrder,
+					tasks: newActiveSection?.tasks,
 					tasksOrder: newActiveSection?.tasksOrder,
 				});
 
 				updateSection({
 					id: overSection.id,
 					board: board.id,
-					tasks: newOverSection?.tasksOrder,
+					tasks: newOverSection?.tasks,
 					tasksOrder: newOverSection?.tasksOrder,
 				});
 			}
@@ -335,12 +330,12 @@ const BoardBody: React.FC<BoardBodyProps> = ({ board }) => {
 				);
 
 				// reorder tasks in the same section like reordering sections
-				// const reorderedTasks = arrayMove(
-				// 	oldSectionWhenDraggingTask?.tasks,
-				// 	oldTaskIndex,
-				// 	newTaskIndex,
-				// );
-				// console.log(oldSectionWhenDraggingTask.tasksOrder);
+				const reorderedTasks = arrayMove(
+					oldSectionWhenDraggingTask?.tasks,
+					oldTaskIndex,
+					newTaskIndex,
+				);
+
 				const oldTasksOrder = oldSectionWhenDraggingTask?.tasksOrder;
 				const newTasksOrder = arrayMove(
 					oldTasksOrder,
@@ -364,7 +359,7 @@ const BoardBody: React.FC<BoardBodyProps> = ({ board }) => {
 				updateSection({
 					id: oldSectionWhenDraggingTask?.id,
 					board: board.id,
-					tasks: newTasksOrder,
+					tasks: reorderedTasks,
 					tasksOrder: newTasksOrder,
 				});
 			}
