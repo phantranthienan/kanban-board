@@ -69,10 +69,6 @@ const BoardBody: React.FC<BoardBodyProps> = ({ board }) => {
 		}
 	}, [board.sectionsOrder, sections]);
 
-	useEffect(() => {
-		console.log('Local sections', localSections);
-	}, [localSections]);
-
 	// Active item state (dragged item)
 	const [activeItemId, setActiveItemId] = useState<string | null>(null);
 	const [activeItemType, setActiveItemType] = useState<string | null>(null);

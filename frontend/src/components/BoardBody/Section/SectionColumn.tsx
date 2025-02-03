@@ -33,12 +33,8 @@ const SectionColumn: React.FC<SectionColumnProps> = ({ section }) => {
 	const handleError = useErrorHandler();
 
 	const tasks = useMemo(
-		() => {
-			console.log('Computed tasks', section.id);
-			return mapOrder(section.tasks, section.tasksOrder, 'id');
-		},
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-		[JSON.stringify(section.tasks), JSON.stringify(section.tasksOrder)], // Only recalculate when these change
+		() => mapOrder(section.tasks, section.tasksOrder, 'id'),
+		[section.tasks, section.tasksOrder],
 	);
 
 	// Queries and mutations
