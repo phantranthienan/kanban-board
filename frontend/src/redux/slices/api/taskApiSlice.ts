@@ -15,10 +15,9 @@ export const taskApi = createApi({
 	baseQuery: baseQuery,
 	tagTypes: ['Task'],
 	endpoints: (builder) => ({
-		// Create a new task in a section
 		createTask: builder.mutation<CreateTaskResponse, CreateTaskRequest>({
 			query: (newTask) => ({
-				url: `boards/${newTask.board}/sections/${newTask.section}/tasks`, // Endpoint for creating a task
+				url: `boards/${newTask.board}/sections/${newTask.section}/tasks`,
 				method: 'POST',
 				body: newTask,
 			}),
@@ -30,27 +29,51 @@ export const taskApi = createApi({
 			},
 			invalidatesTags: ['Task'],
 		}),
-
-		// Update a task by ID
 		updateTask: builder.mutation<UpdateTaskResponse, UpdateTaskRequest>({
 			query: (updatedTask) => ({
-				url: `boards/${updatedTask.board}/sections/${updatedTask.section}/tasks/${updatedTask.id}`, // Endpoint for updating a task
+				url: `boards/${updatedTask.board}/sections/${updatedTask.section}/tasks/${updatedTask.id}`,
 				method: 'PUT',
 				body: updatedTask,
 			}),
-			async onQueryStarted(_args, { dispatch, queryFulfilled }) {
-				await queryFulfilled;
+			async onQueryStarted(
+				{ board, section, id, ...rest },
+				{ dispatch, queryFulfilled },
+			) {
+				// Optimistically update the getSections cache.
+				const patchResult = dispatch(
+					sectionApi.util.updateQueryData(
+						'getSections',
+						{ boardId: board! },
+						(draft) => {
+							const sectionDraft = draft.find((s) => s.id === section);
+							if (sectionDraft) {
+								const taskIndex = sectionDraft.tasks.findIndex(
+									(t) => t.id === id,
+								);
+								if (taskIndex !== -1) {
+									sectionDraft.tasks[taskIndex] = {
+										...sectionDraft.tasks[taskIndex],
+										...rest,
+									};
+								}
+							}
+						},
+					),
+				);
+				try {
+					await queryFulfilled;
+				} catch {
+					patchResult.undo();
+				}
 				dispatch(
 					sectionApi.util.invalidateTags([{ type: 'Section', id: 'LIST' }]),
 				);
 			},
 			invalidatesTags: ['Task'],
 		}),
-
-		// Delete a task by ID
 		deleteTask: builder.mutation<DeleteTaskResponse, DeleteTaskRequest>({
 			query: ({ boardId, sectionId, taskId }) => ({
-				url: `boards/${boardId}/sections/${sectionId}/tasks/${taskId}`, // Endpoint for deleting a task
+				url: `boards/${boardId}/sections/${sectionId}/tasks/${taskId}`,
 				method: 'DELETE',
 			}),
 			async onQueryStarted(_args, { dispatch, queryFulfilled }) {

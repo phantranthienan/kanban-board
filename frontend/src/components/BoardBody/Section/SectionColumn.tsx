@@ -34,7 +34,7 @@ const SectionColumn: React.FC<SectionColumnProps> = ({ section }) => {
 
 	const tasks = useMemo(
 		() => mapOrder(section.tasks, section.tasksOrder, 'id'),
-		[section.tasks, section.tasksOrder], // Only recalculate when these change
+		[section.tasks, section.tasksOrder],
 	);
 
 	// Queries and mutations

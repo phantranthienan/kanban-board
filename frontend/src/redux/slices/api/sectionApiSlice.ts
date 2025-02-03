@@ -21,7 +21,6 @@ export const sectionApi = createApi({
 			query: ({ boardId }) => `boards/${boardId}/sections`,
 			providesTags: [{ type: 'Section', id: 'LIST' }],
 		}),
-		// Create a new section
 		createSection: builder.mutation<
 			CreateSectionResponse,
 			CreateSectionRequest
@@ -38,23 +37,47 @@ export const sectionApi = createApi({
 			},
 			invalidatesTags: [{ type: 'Section', id: 'LIST' }],
 		}),
-		// Update an existing section
 		updateSection: builder.mutation<
 			UpdateSectionResponse,
 			UpdateSectionRequest
 		>({
-			query: (updatedSection) => ({
-				url: `boards/${updatedSection.board}/sections/${updatedSection.id}`,
-				method: 'PUT',
-				body: updatedSection,
-			}),
-			async onQueryStarted({ board }, { dispatch, queryFulfilled }) {
-				await queryFulfilled;
+			query: ({ id, board, tasks, tasksOrder }) => {
+				const taskIds = tasks?.map((task) => task.id);
+				return {
+					url: `boards/${board}/sections/${id}`,
+					method: 'PUT',
+					body: { tasks: taskIds, tasksOrder },
+				};
+			},
+			async onQueryStarted(
+				{ id, board, tasks, tasksOrder },
+				{ dispatch, queryFulfilled },
+			) {
+				// Optimistically patch the getSections cache for this board.
+				const patchResult = dispatch(
+					sectionApi.util.updateQueryData(
+						'getSections',
+						{ boardId: board! },
+						(draft) => {
+							const section = draft.find((s) => s.id === id);
+							if (section) {
+								section.tasks = tasks!;
+								section.tasksOrder = tasksOrder!;
+							}
+						},
+					),
+				);
+				try {
+					await queryFulfilled;
+				} catch {
+					// If the update fails, undo the patch.
+					patchResult.undo();
+				}
+				// Also invalidate board details so that any other cached board data is updated.
 				dispatch(boardApi.util.invalidateTags([{ type: 'Board', id: board }]));
 			},
 			invalidatesTags: [{ type: 'Section', id: 'LIST' }],
 		}),
-		// Delete an existing section
 		deleteSection: builder.mutation<
 			DeleteSectionResponse,
 			DeleteSectionRequest

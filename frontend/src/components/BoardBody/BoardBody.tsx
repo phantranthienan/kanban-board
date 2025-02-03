@@ -305,14 +305,14 @@ const BoardBody: React.FC<BoardBodyProps> = ({ board }) => {
 				updateSection({
 					id: oldSectionWhenDraggingTask?.id,
 					board: board.id,
-					tasks: newActiveSection?.tasksOrder,
+					tasks: newActiveSection?.tasks,
 					tasksOrder: newActiveSection?.tasksOrder,
 				});
 
 				updateSection({
 					id: overSection.id,
 					board: board.id,
-					tasks: newOverSection?.tasksOrder,
+					tasks: newOverSection?.tasks,
 					tasksOrder: newOverSection?.tasksOrder,
 				});
 			}
@@ -326,12 +326,12 @@ const BoardBody: React.FC<BoardBodyProps> = ({ board }) => {
 				);
 
 				// reorder tasks in the same section like reordering sections
-				// const reorderedTasks = arrayMove(
-				// 	oldSectionWhenDraggingTask?.tasks,
-				// 	oldTaskIndex,
-				// 	newTaskIndex,
-				// );
-				// console.log(oldSectionWhenDraggingTask.tasksOrder);
+				const reorderedTasks = arrayMove(
+					oldSectionWhenDraggingTask?.tasks,
+					oldTaskIndex,
+					newTaskIndex,
+				);
+
 				const oldTasksOrder = oldSectionWhenDraggingTask?.tasksOrder;
 				const newTasksOrder = arrayMove(
 					oldTasksOrder,
@@ -355,7 +355,7 @@ const BoardBody: React.FC<BoardBodyProps> = ({ board }) => {
 				updateSection({
 					id: oldSectionWhenDraggingTask?.id,
 					board: board.id,
-					tasks: newTasksOrder,
+					tasks: reorderedTasks,
 					tasksOrder: newTasksOrder,
 				});
 			}
