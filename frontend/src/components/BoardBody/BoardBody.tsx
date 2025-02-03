@@ -302,18 +302,22 @@ const BoardBody: React.FC<BoardBodyProps> = ({ board }) => {
 				setLocalSections(newSections);
 
 				// we send request after updating the local state to avoid flickering
-				updateSection({
-					id: oldSectionWhenDraggingTask?.id,
-					board: board.id,
-					tasks: newActiveSection?.tasks,
-					tasksOrder: newActiveSection?.tasksOrder,
-				});
-
-				updateSection({
-					id: overSection.id,
-					board: board.id,
-					tasks: newOverSection?.tasks,
-					tasksOrder: newOverSection?.tasksOrder,
+				// send both updateSection calls concurrently.
+				Promise.all([
+					updateSection({
+						id: oldSectionWhenDraggingTask!.id,
+						board: board.id,
+						tasks: newActiveSection!.tasks,
+						tasksOrder: newActiveSection!.tasksOrder,
+					}).unwrap(),
+					updateSection({
+						id: overSection.id,
+						board: board.id,
+						tasks: newOverSection!.tasks,
+						tasksOrder: newOverSection!.tasksOrder,
+					}).unwrap(),
+				]).catch((error) => {
+					handleError(error);
 				});
 			}
 			// handle the case where the task is dragged over the same section

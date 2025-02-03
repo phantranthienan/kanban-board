@@ -37,6 +37,7 @@ export const sectionApi = createApi({
 			},
 			invalidatesTags: [{ type: 'Section', id: 'LIST' }],
 		}),
+		// In sectionApiSlice.ts
 		updateSection: builder.mutation<
 			UpdateSectionResponse,
 			UpdateSectionRequest
@@ -53,7 +54,7 @@ export const sectionApi = createApi({
 				{ id, board, tasks, tasksOrder },
 				{ dispatch, queryFulfilled },
 			) {
-				// Optimistically patch the getSections cache for this board.
+				// Optimistically patch the getSections query cache for this board.
 				const patchResult = dispatch(
 					sectionApi.util.updateQueryData(
 						'getSections',
@@ -70,14 +71,13 @@ export const sectionApi = createApi({
 				try {
 					await queryFulfilled;
 				} catch {
-					// If the update fails, undo the patch.
+					// Roll back if the server update fails.
 					patchResult.undo();
 				}
-				// Also invalidate board details so that any other cached board data is updated.
-				dispatch(boardApi.util.invalidateTags([{ type: 'Board', id: board }]));
 			},
 			invalidatesTags: [{ type: 'Section', id: 'LIST' }],
 		}),
+
 		deleteSection: builder.mutation<
 			DeleteSectionResponse,
 			DeleteSectionRequest
